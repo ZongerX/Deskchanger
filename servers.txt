@@ -1,0 +1,11 @@
+http://east.yaakov.ru/small.png 
+http://east.yaakov.ru/medium.jpg
+http://east.yaakov.ru/large.jpg
+http://electro-l.timur.it/2048_307.jpg
+http://electro-l.timur.it/1280_307.jpg
+http://electro-l.timur.it/1024_307.jpg
+http://electro-l.timur.it/2048_2_307.jpg
+http://electro-l.timur.it/1280_2_307.jpg
+http://electro-l.timur.it/1024_2_307.jpg
+Резервный сервер
+Резервный сервер HD
