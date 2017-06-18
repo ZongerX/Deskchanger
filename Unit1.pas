@@ -8,14 +8,13 @@ uses
   CoolTrayIcon, ExtCtrls, IdBaseComponent, IdComponent, 
   IdHTTP, StdCtrls, Controls, Forms,  Dialogs, Registry,
   WinProcs, ShellApi, IniFiles, Buttons, ComObj, ShlObj, IdTCPClient, wininet, IdTCPConnection,
-  XPMan, ComCtrls;
+  XPMan, StrUtils, ComCtrls;
 type
   TForm1 = class(TForm)
     Button1: TButton;
     IdHTTP1: TIdHTTP;
     Timer1: TTimer;
     Label4: TLabel;
-    CoolTrayIcon1: TCoolTrayIcon;
     CheckBox1: TCheckBox;
     Label6: TLabel;
     PopupMenu1: TPopupMenu;
@@ -40,13 +39,17 @@ type
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     GroupBox1: TGroupBox;
-    XPManifest1: TXPManifest;
     Label5: TLabel;
     Label8: TLabel;
     Label9: TLabel;
     ComboBox2: TComboBox;
     Label1: TLabel;
     Memo2: TMemo;
+    CoolTrayIcon1: TCoolTrayIcon;
+    Label10: TLabel;
+    CheckBox5: TCheckBox;
+    CheckBox6: TCheckBox;
+    ListBox1: TListBox;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure IdHTTP1Redirect(Sender: TObject; var dest: String;
@@ -83,7 +86,7 @@ type
     procedure Edit2Change(Sender: TObject);
     procedure Edit1Change(Sender: TObject);
     procedure N3Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+//    procedure Button2Click(Sender: TObject);
     procedure Label7Click(Sender: TObject);
     procedure Edit2Enter(Sender: TObject);
     procedure Edit2Exit(Sender: TObject);
@@ -110,6 +113,12 @@ type
     procedure Label8MouseLeave(Sender: TObject);
     procedure Edit3KeyPress(Sender: TObject; var Key: Char);
     procedure ComboBox2Change(Sender: TObject);
+    procedure Label10Click(Sender: TObject);
+    procedure Label10MouseEnter(Sender: TObject);
+    procedure Label10MouseLeave(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure CheckBox5Click(Sender: TObject);
+    procedure ListBox1DblClick(Sender: TObject);
   private
     { Private declarations }
     procedure WMHotkey( var msg: TWMHotkey ); message WM_HOTKEY;
@@ -120,10 +129,11 @@ type
 var
   Form1: TForm1;
   IdHTTP1: TIdHTTP;
-  ver: string = '0.6.0';
-  redir:boolean;
+  ver: string = '0.6.2';
+  redir: boolean;
   IniFile : TIniFile;
   url: string;
+  HD: boolean;
 
 implementation
 
@@ -133,6 +143,48 @@ implementation
 function Sort(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   Result:=StrToInt(List[Index1])-StrToInt(List[Index2]);
+end;
+
+procedure CheckUpdate();
+var
+  last:string;
+begin
+  //Проверка обновления
+  last:=Form1.idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt');
+  if ver<>last then
+    begin
+      Form1.Label2.Visible:=true;
+      Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
+      idhttp1.ClearWriteBuffer;
+    end;
+end;
+
+procedure SetWallpaper(sWallpaperBMPPath: string; bTile: boolean);
+var 
+  reg: TRegIniFile;
+begin 
+  //     Изменяем ключи реестра 
+  //     HKEY_CURRENT_USER
+  //     Control Panel\Desktop
+  //     TileWallpaper (REG_SZ) 
+  //     Wallpaper (REG_SZ) 
+ 
+  reg := TRegIniFile.Create('Control Panel\Desktop'); 
+  with reg do 
+  begin
+    WriteString('', 'Wallpaper', sWallpaperBMPPath);
+    if Form1.checkbox5.Checked then WriteString('', 'WallpaperStyle', '6');
+    if (bTile) then 
+    begin 
+      WriteString('', 'TileWallpaper', '1'); 
+    end 
+    else
+    begin 
+      WriteString('', 'TileWallpaper', '0');
+    end; 
+  end; 
+  reg.Free; 
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE); 
 end;
 
 procedure GetProxyData(var ProxyEnabled: boolean; var ProxyServer: string; var ProxyPort: integer);
@@ -199,12 +251,16 @@ var
 begin
 if key = #13 then
 begin
+ if Form1.IdFTP1.Connected=false then 
+  begin
   idftp1.Host:='217.174.103.107';
   idftp1.Port:=21;
   idftp1.Username:='electro';
   idftp1.Password:='electro';
   idftp1.Connect(true, 30000);
   AssErt(idftp1.Connected);
+  end;
+  
   if pos('.jpg',edit3.Text)<>0 then
     begin
       idftp1.Get(edit3.text, GetWin('%AppData%')+'\img', true);
@@ -214,20 +270,19 @@ begin
     end
       else
         begin
+          edit3.Text:=(edit3.text+'/');
+          Edit3.SelStart:=Length(Edit3.Text);
           idftp1.ChangeDir(edit3.text);
           idFTP1.List(memo1.Lines,'',false);
+          idFTP1.List(ListBox1.Items,'',false);
         end;
-//idftp1.Get(edit3.text, GetWin('%AppData%')+'\img', true);
 idftp1.Disconnect;
 end;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
-const
- Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
 var
   buf: TMemoryStream;
-  ActiveDeskTop:IActiveDesktop; // вроде понятно, зачем
 begin
   //Подгрузка конфига с переводом
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\Config.ini');
@@ -236,15 +291,21 @@ begin
       CoolTrayIcon1.ShowBalloonHint('Desktop Changer', IniFile.ReadString('LANG','CHOOSELINK','Выберите ссылку'), bitwarning, 10);
       exit;
     end;
-      if (ComboBox1.Text='Original FTP') or (ComboBox1.Text='Original FTP HD')
-        then
+      if ComboBox1.Text='Original FTP' then
           begin
-            button2.Click;
+            HD:=false;
+            Button2.Click;
             exit;
-          end;
+          end
+            else if ComboBox1.Text='Original FTP HD' then
+              begin
+                HD:=true;
+                Button2.Click;
+                exit;
+              end;
 
-  Button1.Caption:=(IniFile.ReadString('LANG','DOWNLOADING','Загрузка ')+'...');
   Button1.Enabled:=false;
+  Button1.Caption:=(IniFile.ReadString('LANG','DOWNLOADING','Загрузка ')+'...');
   CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','DOWNLOADING','Загрузка'+'...'));
   if pos('http://', Combobox1.Text)=0 then ComboBox1.Text:=('http://'+Combobox1.Text);
     try
@@ -258,21 +319,20 @@ begin
         Button1.Caption:=(IniFile.ReadString('LANG','INSTALL','Установка'+'...'));
         Button1.Update;
         //Сохранение
-        buf.SaveToFile(GetWin('%AppData%')+'\img');
-        buf.Clear;
+        buf.SaveToFile(GetWin('%AppData%')+'\img.jpg');
+//        buf.Clear;
         //Установка обоев
-        ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //создаем объект и получаем разрешение доступа к рабочему столу
-        ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // определились с выбором картинки
-        ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // применяем картинку на рабочем столе
-        deletefile(Pchar(GetWin('%AppData%')+'\img'));
+        SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
+//        deletefile(Pchar(GetWin('%AppData%')+'\img'));
         if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены'), bitinfo, 10);
+        label4.Visible:=true;
         label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
         CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
       end;
     except
       Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
       Button1.Enabled:=true;
-      idhttp1.Disconnect;
+//      idhttp1.Disconnect;
     end;
   Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
   Button1.Enabled:=true;
@@ -282,11 +342,9 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
 try
-  if Combobox2.ItemIndex<>0 then button1.Click;
-  //Проверка обновления
-  if ver<>idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt') then Label2.Visible:=true;
-  if Checkbox4.Checked=true then Combobox1.Items.Text:=(idhttp1.Get('http://games-wars.ucoz.ru/servers.txt'));
-  idhttp1.Disconnect;
+  if Combobox2.ItemIndex<>0 then button1.Click;  
+  CheckUpdate(); //Проверка обновления
+//  idhttp1.Disconnect;
 except
   CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Проверьте интернет соединение!'), biterror, 10);
 end;
@@ -305,7 +363,7 @@ end;
 
 procedure TForm1.CoolTrayIcon1Click(Sender: TObject);
 begin
-  Form1.Show;
+  Form1.Visible:=true;
 end;
 
 procedure TForm1.CoolTrayIcon1MinimizeToTray(Sender: TObject);
@@ -451,7 +509,7 @@ try
   if reg.ReadString('Update')='30'  then Combobox2.ItemIndex:=2;
   if reg.ReadString('Update')='60'  then Combobox2.ItemIndex:=3;
   if reg.ReadString('Update')='120' then Combobox2.ItemIndex:=4;
-  
+
   //Дебаг режим
   if reg.ValueExists('Debug') then
     begin
@@ -461,6 +519,9 @@ try
       Form1.ClientHeight:=300;
       label3.Visible:=true;
     end;
+
+   //Изображение по центру
+   if reg.ValueExists('WallpaperStyle') then Checkbox5.Checked:=true;
 
   //Проверка на запись автозапуска в реестре
   reg:= TRegistry.Create(KEY_READ);
@@ -594,11 +655,12 @@ procedure TForm1.Label6ContextPopup(Sender: TObject; MousePos: TPoint;
 begin
   if label3.Visible=false then
     begin
-      Form1.ClientHeight:=520;
+      Form1.ClientHeight:=(Label3.Top+Memo1.Height+40);
       button2.Visible:=true;
       edit3.Visible:=true;
       memo1.Visible:=true;
       label3.Visible:=true;
+      Checkbox6.Checked:=true;
     end
       else
         begin
@@ -607,6 +669,7 @@ begin
           edit3.Visible:=false;
           memo1.Visible:=false;
           label3.Visible:=false;
+          Checkbox6.Checked:=false;
         end;
 end;
 
@@ -768,191 +831,9 @@ begin
   if form1.ClientHeight=115 then label7.OnClick(Self);
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
-const
- Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
-var
-  ActiveDeskTop:IActiveDesktop; //Активация рабочего стола
-  FTP: TStringList;
-  Day,Mon,MonStr,Year,Date,Time:String;
-  yearcycle,moncycle,daycycle:integer;
-begin
-  try
-  FTP:=TStringList.Create;
-  //Определение даты и перевод из чисел в слова
-  Date:=(DateToStr(GetCurrentDateTime));
-//  Day:=copy(Date,1,2);
-  Mon:=Date[4]+Date[5];
-  Year:=Date[7]+Date[8]+Date[9]+Date[10];
-  //Перевод числовых значений месяца в строковые
-  if Mon='01' then MonStr:='January';
-  if Mon='02' then MonStr:='February';
-  if Mon='03' then MonStr:='March';
-  if Mon='04' then MonStr:='April';
-  if Mon='05' then MonStr:='May';
-  if Mon='06' then MonStr:='June';
-  if Mon='07' then MonStr:='July';
-  if Mon='08' then MonStr:='August';
-  if Mon='09' then MonStr:='September';
-  if Mon='10' then MonStr:='October';
-  if Mon='11' then MonStr:='November';
-  if Mon='12' then MonStr:='December';
-  //Определение настроек FTP
-  idftp1.Host:='217.174.103.107';
-  idftp1.Port:=21;
-  idftp1.Username:='electro';
-  idftp1.Password:='electro';
-//  idftp1.Connect(true, 3000);
-//  AssErt(idftp1.Connected);
-  yearcycle:=1;
-  moncycle:=1;
-  daycycle:=1;
 
-  //Поиск снимка
-  Button1.Caption:='Поиск снимка...';
-  Button1.Enabled:=false;
-  Button1.Update;
-  Try
-// Repeat
-    begin
-//      if line>12 then exit;
-      //Подключение
-      idftp1.Connect(true, 60000);
-      AssErt(idftp1.Connected);
-      //Вывод списка папок
-//      idftp1.ChangeDir(edit3.text);
-      idFTP1.List(memo1.Lines,'',false);
-        //Сортировка
-        FTP.Assign(Memo1.Lines);
-        FTP.CustomSort(Sort);
-        Memo1.Lines.Assign(FTP);
-        memo1.Update;
-      //Год
-      edit3.Text:=edit3.Text+(Memo1.Lines[Memo1.Lines.Count-yearcycle]+'/');
-      idftp1.ChangeDir(edit3.text);
-      idFTP1.List(memo1.Lines,'',false);
-      memo1.Update;
-//      sleep(90000);
-      //Перевод строковых значений месяца в числовые
-      if pos('January', Memo1.Lines.Text)>0 then memo2.Lines.Add('01');
-      if pos('February', Memo1.Lines.Text)>0 then memo2.Lines.Add('02');
-      if pos('March', Memo1.Lines.Text)>0 then memo2.Lines.Add('03');
-      if pos('April', Memo1.Lines.Text)>0 then memo2.Lines.Add('04');
-      if pos('May', Memo1.Lines.Text)>0 then memo2.Lines.Add('05');
-      if pos('June', Memo1.Lines.Text)>0 then memo2.Lines.Add('06');
-      if pos('July', Memo1.Lines.Text)>0 then memo2.Lines.Add('07');
-      if pos('August', Memo1.Lines.Text)>0 then memo2.Lines.Add('08');
-      if pos('September', Memo1.Lines.Text)>0 then memo2.Lines.Add('09');
-      if pos('October', Memo1.Lines.Text)>0 then memo2.Lines.Add('10');
-      if pos('November', Memo1.Lines.Text)>0 then memo2.Lines.Add('11');
-      if pos('December', Memo1.Lines.Text)>0 then memo2.Lines.Add('12');
-        //Сортировка
-        FTP.Assign(Memo2.Lines);
-        FTP.CustomSort(Sort);
-        Memo1.Clear;
-      //Приобразование цифровых в строковые
-      if Memo2.Lines[0]='01' then memo1.Lines.Add('January');
-      if Memo2.Lines[1]='02' then memo1.Lines.Add('February');
-      if Memo2.Lines[2]='03' then memo1.Lines.Add('March');
-      if Memo2.Lines[3]='04' then memo1.Lines.Add('April');
-      if Memo2.Lines[4]='05' then memo1.Lines.Add('May');
-      if Memo2.Lines[5]='06' then memo1.Lines.Add('June');
-      if Memo2.Lines[6]='07' then memo1.Lines.Add('July');
-      if Memo2.Lines[7]='08' then memo1.Lines.Add('August');
-      if Memo2.Lines[8]='09' then memo1.Lines.Add('September');
-      if Memo2.Lines[9]='10' then memo1.Lines.Add('October');
-      if Memo2.Lines[10]='11' then memo1.Lines.Add('November');
-      if Memo2.Lines[11]='12' then memo1.Lines.Add('December');
-      Memo2.Clear;
-//      edit3.Text:=edit3.Text+'/';
 
-      //Месяц
-      edit3.Text:=edit3.Text+(Memo1.Lines[Memo1.Lines.Count-1]+'/');
-//      idftp1.ChangeDir(edit3.text);
-//      idFTP1.List(memo1.Lines,'',false);
-  {      //Сортировка
-        FTP.Assign(Memo1.Lines);
-        FTP.CustomSort(Sort);
-        Memo1.Lines.Assign(FTP);                     
-      //Ввод года, месяца
-      edit3.text:=('/'+Year+'/'+MonStr+'/');
-      //Подключение и вывод директории в memo
-      idftp1.ChangeDir(edit3.text);
-      idFTP1.List(memo1.Lines,'',false);
-      memo1.Update;
-      sleep(10000);
-      //Сортировка
-      FTP.Assign(Memo1.Lines);
-      FTP.CustomSort(Sort);
-      Memo1.Lines.Assign(FTP);
-      memo1.Update;
-      //Получение последней папки дня
-      day:=(Memo1.Lines[Memo1.Lines.Count-line]);
-      label3.Caption:=('day: '+day);
-      edit3.text:=('/'+Year+'/'+MonStr+'/'+day+'/');
-      //Подключение и вывод директории в memo
-      idftp1.ChangeDir(edit3.text);
-      idFTP1.List(memo1.Lines,'',false);
-      memo1.Update;
-      //Сортировка
-      FTP.Assign(Memo1.Lines);
-      FTP.CustomSort(Sort);
-      Memo1.Lines.Assign(FTP);
-      memo1.Update;
-      //Поиск временной папки с снимком
-      Repeat
-        time:=(Memo1.Lines[Memo1.Lines.Count-tline]);
-        edit3.text:=('/'+Year+'/'+MonStr+'/'+Day+'/'+time+'/');
-        idftp1.ChangeDir(edit3.text);
-        idFTP1.List(memo1.Lines,'',false);
-        edit3.Update;
-        memo1.Update;
-        tline:=tline+1;
-        if pos('.jpg',memo1.Lines.Text)<>0 then break;
 
-      Until pos('.jpg',memo1.Lines.Text)<>0;
-  }
-//      line:=line+1;
-      idftp1.Disconnect;
-      exit;
-    end;
- //    Until pos('.jpg',memo1.Lines.Text)<>0;
-//    exit;
-  Except
-    idftp1.Disconnect;
-    label4.Caption:='Проверьте интернет соединение';
-    CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
-    exit;
-  End;
-
-  CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,'Прошёл', bitinfo, 10);
-  Button1.Caption:='Загрузка...';
-  deletefile(Pchar(GetWin('%AppData%')+'\img'));
-  idftp1.Connect(true, 3000);
-  AssErt(idftp1.Connected);
-  if combobox1.Text='Reserve server' then idftp1.Get(edit3.text+Year[3]+Year[4]+Mon+Day+'_'+time+'_RGB.jpg', GetWin('%AppData%')+'\img', true);
-  if combobox1.Text='Reserve server HD' then idftp1.Get(edit3.text+Year[3]+Year[4]+Mon+Day+'_'+time+'_original_RGB.jpg', GetWin('%AppData%')+'\img', true);
-  idftp1.Disconnect;
-
- 
-  Button1.Caption:='Установка...';
-  Button1.Update;
-  ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //создаем объект и получаем разрешение доступа к рабочему столу
-  ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // определились с выбором картинки
-  ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // применяем картинку на рабочем столе
-  Button1.Caption:='Обновить';
-  Button1.Enabled:=true;
-  if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,'Обои обновлены', bitinfo, 10);
-  label4.Caption:=('Последнее обновление: '+FormatDateTime('hh:mm',now));
-  CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +'Последнее обновление: '+FormatDateTime('hh:mm',now));
-  Except
-    CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
-    Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
-    Button1.Enabled:=true;
-    idftp1.Disconnect;
-    idhttp1.Disconnect;
-  End;
-end;
 
 procedure TForm1.Label7Click(Sender: TObject);
 begin
@@ -1086,13 +967,8 @@ begin
   reg.RootKey:=HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', False);
   if reg.ReadString('ServerLinks')='1' then checkbox4.Checked:=true;
-  
-  //Проверка обновления
-  if ver<>idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt') then
-    begin
-      Label2.Visible:=true;
-      CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt'), bitInfo, 10);
-    end;
+
+  CheckUpdate();  //Проверка обновления
 
   //Обновление изображения при запуске
   startparam := ParamStr(1);
@@ -1136,8 +1012,8 @@ end;
 
 procedure TForm1.Label5MouseEnter(Sender: TObject);
 begin
-Label5.Font.Color:=clHotLight;
-Label5.Font.Style:=label5.Font.Style +[fsunderline];
+  Label5.Font.Color:=clHotLight;
+  Label5.Font.Style:=label5.Font.Style +[fsunderline];
 end;
 
 procedure TForm1.Label5MouseLeave(Sender: TObject);
@@ -1148,7 +1024,6 @@ end;
 
 procedure TForm1.Label5Click(Sender: TObject);
 begin
-
 ShellExecute(0, 'open', 'http://earth.nullschool.net/#current/wind/surface/level/orthographic=-281.69,4.61,416', nil, nil, SW_SHOW);
 end;
 
@@ -1173,6 +1048,7 @@ begin
   IniFile.WriteString('LANG','DOWNLOADING','Загрузка');
   IniFile.WriteString('LANG','INSTALL','Установка');
   IniFile.WriteString('LANG','CHECKINTERNET','Проверьте интернет соединение!');
+  IniFile.WriteString('LANG','UPDATEINTERVAL','Интервал обновления:');
   IniFile.WriteInteger('FONT','Label7',253);
   IniFile.WriteInteger('FONT','Label6',192);
   IniFile.WriteInteger('FONT','Label5',120);
@@ -1191,6 +1067,7 @@ begin
   Checkbox3.Caption:=IniFile.ReadString('LANG','TRAYICON',Checkbox3.Caption);
   Checkbox2.Caption:=IniFile.ReadString('LANG','NOTIFICATION',Checkbox2.Caption);
   Checkbox1.Caption:=IniFile.ReadString('LANG','AUTOSTART',Checkbox1.Caption);
+  Label1.Caption:=IniFile.ReadString('LANG','UPDATEINTERVAL',Label1.Caption);
 //  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK',Combobox1.Text);
   Label7.Left:=IniFile.ReadInteger('FONT','Label7',254);
   Label6.Left:=IniFile.ReadInteger('FONT','Label6',193);
@@ -1201,6 +1078,7 @@ end;
 
 procedure TForm1.Label9Click(Sender: TObject);
 begin
+  //Запись в файл конфигурации
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\Config.ini');
   IniFile.WriteString('LANG','UPDATE','Update');
   IniFile.WriteString('LANG','UPDATEPROGRAM','Update programm!');
@@ -1220,6 +1098,7 @@ begin
   IniFile.WriteString('LANG','DOWNLOADING','Downloading');
   IniFile.WriteString('LANG','INSTALL','Install');
   IniFile.WriteString('LANG','CHECKINTERNET','Check you internet connection!');
+  IniFile.WriteString('LANG','UPDATEINTERVAL','Update interval:');
   IniFile.WriteInteger('FONT','Label7',271);
   IniFile.WriteInteger('FONT','Label6',232);
   IniFile.WriteInteger('FONT','Label5',176);
@@ -1239,6 +1118,8 @@ begin
   Checkbox3.Caption:=IniFile.ReadString('LANG','TRAYICON',Checkbox3.Caption);
   Checkbox2.Caption:=IniFile.ReadString('LANG','NOTIFICATION',Checkbox2.Caption);
   Checkbox1.Caption:=IniFile.ReadString('LANG','AUTOSTART',Checkbox1.Caption);
+  Label1.Caption:=IniFile.ReadString('LANG','UPDATEINTERVAL',Label1.Caption);
+
 //  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK',Combobox1.Text);
   Label7.Left:=IniFile.ReadInteger('FONT','Label7',271);
   Label6.Left:=IniFile.ReadInteger('FONT','Label6',232);
@@ -1250,25 +1131,25 @@ end;
 procedure TForm1.Label9MouseEnter(Sender: TObject);
 begin
 Label9.Font.Color:=clwindowframe;
-Label9.Font.Style:=label9.Font.Style;
+Label9.Font.Style:=label9.Font.Style +[fsunderline];
 end;
 
 procedure TForm1.Label8MouseEnter(Sender: TObject);
 begin
 Label8.Font.Color:=clwindowframe;
-Label8.Font.Style:=label8.Font.Style;
+Label8.Font.Style:=label8.Font.Style +[fsunderline];
 end;
 
 procedure TForm1.Label9MouseLeave(Sender: TObject);
 begin
 Label9.Font.Color:=clgray;
-Label9.Font.Style:=label9.Font.Style;
+Label9.Font.Style:=label9.Font.Style -[fsunderline];
 end;
 
 procedure TForm1.Label8MouseLeave(Sender: TObject);
 begin
 Label8.Font.Color:=clgray;
-Label8.Font.Style:=label8.Font.Style;
+Label8.Font.Style:=label8.Font.Style -[fsunderline];
 end;
 
 procedure TForm1.ComboBox2Change(Sender: TObject);
@@ -1294,6 +1175,287 @@ begin
   if Combobox2.ItemIndex=3 then reg.WriteString('Update', ComboBox2.Text);
   if Combobox2.ItemIndex=4 then reg.WriteString('Update', ComboBox2.Text);
   reg.Free;
+end;
+
+procedure TForm1.Label10Click(Sender: TObject);
+begin
+ShellExecute(0, 'open', 'ftp://ftp.ntsomz.ru/', nil, nil, SW_SHOW);
+end;
+
+procedure TForm1.Label10MouseEnter(Sender: TObject);
+begin
+  Label10.Font.Color:=clHotLight;
+  Label10.Font.Style:=label10.Font.Style +[fsunderline];
+end;
+
+procedure TForm1.Label10MouseLeave(Sender: TObject);
+begin
+  Label10.Font.Color:=clgray;
+  Label10.Font.Style:=label10.Font.Style -[fsunderline];
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+var
+  FTP: TStringList;
+  Mon,MonStr,Year,Date:String;
+
+  yearcycle:integer;
+begin
+  try
+  FTP:=TStringList.Create;
+
+  Date:=(DateToStr(GetCurrentDateTime)); //сегодняшнюю дату в тип str и в переменную
+  Mon:=Date[4]+Date[5];//месяц 4 и 5 цифра
+  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //год 7,8,9 и 10 цифры
+
+  //Перевод числовых значений месяца в строковые
+  if Mon='01' then MonStr:='January';
+  if Mon='02' then MonStr:='February';
+  if Mon='03' then MonStr:='March';
+  if Mon='04' then MonStr:='April';
+  if Mon='05' then MonStr:='May';
+  if Mon='06' then MonStr:='June';
+  if Mon='07' then MonStr:='July';
+  if Mon='08' then MonStr:='August';
+  if Mon='09' then MonStr:='September';
+  if Mon='10' then MonStr:='October';
+  if Mon='11' then MonStr:='November';
+  if Mon='12' then MonStr:='December';
+
+  //Определение настроек FTP
+  Form1.idftp1.Host:='217.174.103.107';
+  Form1.idftp1.Port:=21;
+  Form1.idftp1.Username:='electro';
+  Form1.idftp1.Password:='electro';
+
+  yearcycle:=1;//количество повторений
+
+  //Начало поиска, оповещение пользователя
+  Form1.Button1.Enabled:=false;
+  Form1.Button1.Caption:='Поиск снимка...';
+  Form1.Update;
+
+  Try
+    begin
+      //Подключение к ftp
+      Form1.idftp1.Connect(true, 60000);  //Подключение
+      AssErt(Form1.idftp1.Connected);     //Подключение
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false); //Вывод списка папок
+
+
+      //Сортировка по возрастанию
+//      FTP.Assign(Form1.Memo1.Lines);
+      FTP.CustomSort(Sort);
+      Form1.Update;
+      Form1.Memo1.Lines.Assign(FTP);
+      Form1.Update;
+      
+      //Переход в корень FTP
+      Form1.Memo2.Clear;
+      Form1.edit3.Text:='/ELECTRO_L_2';
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-yearcycle]+'');  // Перейти по последнему пункту из списка
+      Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false); //Вывод списка папок
+      Form1.idFTP1.List(ListBox1.Items,'',false);
+      Form1.Update;
+
+      //Перевод слов в цифры
+      if pos('January', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('01');
+      if pos('February', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('02');
+      if pos('March', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('03');
+      if pos('April', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('04');
+      if pos('May', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('05');
+      if pos('June', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('06');
+      if pos('July', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('07');
+      if pos('August', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('08');
+      if pos('September', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('09');
+      if pos('October', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('10');
+      if pos('November', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('11');
+      if pos('December', Form1.Memo1.Lines.Text)>0 then Form1.memo2.Lines.Add('12');
+
+
+      //Сортировка по возрастанию
+      FTP.Assign(Form1.Memo2.Lines);
+      FTP.CustomSort(Sort);
+      Form1.Memo1.Clear;
+      Form1.Update;
+
+      //Перевод цифр месяца в слова
+      if Form1.Memo2.Lines[0]='01' then Form1.memo1.Lines.Add('January');
+      if Form1.Memo2.Lines[1]='02' then Form1.memo1.Lines.Add('February');
+      if Form1.Memo2.Lines[2]='03' then Form1.memo1.Lines.Add('March');
+      if Form1.Memo2.Lines[3]='04' then Form1.memo1.Lines.Add('April');
+      if Form1.Memo2.Lines[4]='05' then Form1.memo1.Lines.Add('May');
+      if Form1.Memo2.Lines[5]='06' then Form1.memo1.Lines.Add('June');
+      if Form1.Memo2.Lines[6]='07' then Form1.memo1.Lines.Add('July');
+      if Form1.Memo2.Lines[7]='08' then Form1.memo1.Lines.Add('August');
+      if Form1.Memo2.Lines[8]='09' then Form1.memo1.Lines.Add('September');
+      if Form1.Memo2.Lines[9]='10' then Form1.memo1.Lines.Add('October');
+      if Form1.Memo2.Lines[10]='11' then Form1.memo1.Lines.Add('November');
+      if Form1.Memo2.Lines[11]='12' then Form1.memo1.Lines.Add('December');
+      Form1.Update;
+
+      //Год
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-1]);//Перейти по последнему пункту из списка
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false);//Вывод списка папок
+      Form1.idFTP1.List(ListBox1.Items,'',false);
+      If checkbox6.Checked=false then //если авто включено
+        begin
+          Form1.idftp1.ChangeDir(Form1.edit3.text);     //Смена директории FTP
+          Form1.idFTP1.List(Form1.memo1.Lines,'',false);//Вывод списка папок
+          Form1.idFTP1.List(ListBox1.Items,'',false);
+          Form1.Update;
+        end
+          else Exit;
+      showmessage('ok');
+
+      //Месяц
+      Form1.edit3.Text:=Form1.edit3.Text+year+'/';//Добавить год и слеш
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false);//Вывод списка папок
+      Form1.idFTP1.List(ListBox1.Items,'',false);
+      If checkbox6.Checked=false then //если авто включено
+        begin
+          Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
+          Form1.idFTP1.List(Form1.memo1.Lines,'',false); //Вывод списка папок
+          Form1.idFTP1.List(ListBox1.Items,'',false);
+          Form1.Update;
+        end
+          else Exit;
+      showmessage('ok2');
+
+
+      //Число
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-1]+'/');//Перейти по последнему пункту из списка
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false);//Вывод списка папок
+      Form1.idFTP1.List(ListBox1.Items,'',false);
+      If checkbox6.Checked=false then //если авто включено
+        begin
+          Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
+          Form1.idFTP1.List(Form1.memo1.Lines,'',false); //Вывод списка папок
+          Form1.idFTP1.List(ListBox1.Items,'',false);
+          Form1.Update;
+        end
+          else Exit;
+//      showmessage('ok3');
+
+      //Снимок
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-1]+'/');//Перейти по последнему пункту из списка
+      Form1.idFTP1.List(Form1.memo1.Lines,'',false);//Вывод списка папок
+      Form1.idFTP1.List(ListBox1.Items,'',false);
+      If checkbox6.Checked=false then //если авто включено
+        begin
+          Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
+          Form1.idFTP1.List(Form1.memo1.Lines,'',false); //Вывод списка папок
+          Form1.idFTP1.List(ListBox1.Items,'',false);
+          Form1.Update;
+        end
+          else Exit;
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-1]);//Перейти по последнему пункту из списка
+ //     showmessage('ok4');
+
+	  //Выбор и загрузка HD или обычного снимка
+      if hd=true then Form1.idftp1.Get(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-1], GetWin('%AppData%')+'\img.jpg', true) //Скачивание
+		else Form1.idftp1.Get(Form1.Memo1.Lines[Form1.Memo1.Lines.Count-2], GetWin('%AppData%')+'\img.jpg', true); //Скачивание
+
+	  //Оповещение
+	  Form1.Button1.Caption:='Установка изображения...';
+    Form1.Update;
+
+	  //Применение к рабочему столу
+    SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
+
+    //Оповещения об обновлении
+    if Form1.checkbox2.Checked then Form1.CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены '+#13+edit3.Text), bitinfo, 10);
+
+    Form1.label4.Visible:=true;
+//    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
+//    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
+
+	  Form1.idftp1.Disconnect;
+    Form1.Button1.Caption:='Обновить';
+    Form1.Button1.Enabled:=true;
+    end;
+  Except
+    Form1.idftp1.Disconnect;
+    Form1.label4.Caption:='Проверьте интернет соединение';
+    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
+    exit;
+  End;
+  except
+  end;
+end;
+
+procedure TForm1.CheckBox5Click(Sender: TObject);
+var
+  reg: TRegistry;
+begin
+if checkbox2.Checked=true then
+  begin
+    N2.Checked:=true;
+    checkbox2.Checked:=true;
+    reg:=TRegistry.Create;
+    reg.RootKey:=HKEY_CURRENT_USER;
+    reg.OpenKey('DeskChanger', True);
+    reg.WriteString('WallpaperStyle', '6');
+    reg.Free;
+  end
+    else
+      begin
+        N2.Checked:=false;
+        checkbox2.Checked:=false;
+        reg:=TRegistry.Create;
+        reg.RootKey:=HKEY_CURRENT_USER;
+        reg.OpenKey('DeskChanger', True);
+        reg.DeleteValue('WallpaperStyle');
+        reg.Free;
+      end;
+end;
+
+procedure TForm1.ListBox1DblClick(Sender: TObject);
+const
+ Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
+var
+  ActiveDeskTop:IActiveDesktop; //Активация рабочего стола
+  reg: TRegIniFile;
+  st: string;
+begin
+  if Form1.IdFTP1.Connected=false then
+    begin
+      idftp1.Host:='217.174.103.107';
+      idftp1.Port:=21;
+      idftp1.Username:='electro';
+      idftp1.Password:='electro';
+      idftp1.Connect(true, 30000);
+      AssErt(idftp1.Connected);
+    end;
+
+  if pos('.jpg',edit3.Text)<>0 then
+    begin
+{
+  Reg := TRegIniFile.Create('Control Panel');
+  Reg.WriteString('desktop', 'Wallpaper', GetWin('%AppData%')+'\img');
+  Reg.WriteString('desktop', 'TileWallpaper', '0');
+  Reg.Free;
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
+}     showmessage('.jpg есть!');
+      idftp1.Get(edit3.text, GetWin('%AppData%')+'\img', true);
+      ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //создаем объект и получаем разрешение доступа к рабочему столу
+      ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // определились с выбором картинки
+      ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // применяем картинку на рабочем столе
+    end
+      else
+        begin
+          showmessage('.jpg не обнаружено!');
+          edit3.Text:=(edit3.text+'/');
+          st:=Edit3.Text+ListBox1.Items[ListBox1.ItemIndex];
+          showmessage(st);
+          Edit3.Text:=Edit3.Text+ListBox1.Items[ListBox1.ItemIndex]; //Выбранную строку в edit3
+          idftp1.ChangeDir(st); //Смена директории FTP
+          idFTP1.List(ListBox1.Items,'',false); //Вывод строк в ListBox
+          Edit3.SetFocus;
+        end;
+        
+  idftp1.Disconnect;
 end;
 
 end.
