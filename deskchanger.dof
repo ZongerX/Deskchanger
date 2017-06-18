@@ -108,7 +108,7 @@ DebugCWD=
 [Language]
 ActiveLang=
 ProjectLang=
-RootDir=
+RootDir=D:\Dropbox\Projects\deskchanger\
 [Version Info]
 IncludeVerInfo=0
 AutoIncBuild=0
@@ -133,9 +133,3 @@ LegalTrademarks=
 OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
-[HistoryLists\hlDebugSourcePath]
-Count=1
-Item0=C:\Program Files (x86)\Borland\Delphi7\Lib\;C:\Program Files (x86)\Borland\Delphi7\Lib\
-[HistoryLists\hlUnitAliases]
-Count=1
-Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
