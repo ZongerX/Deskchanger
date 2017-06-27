@@ -172,8 +172,8 @@ object Form1: TForm1
     ParentFont = False
   end
   object Label10: TLabel
-    Left = 7
-    Top = 249
+    Left = 8
+    Top = 251
     Width = 66
     Height = 13
     Caption = 'FTP '#1053#1062' '#1054#1052#1047
@@ -271,8 +271,8 @@ object Form1: TForm1
     OnExit = ComboBox1Exit
     OnSelect = ComboBox1Select
     Items.Strings = (
-      'Reserve server'
-      'Reserve server HD')
+      'Original FTP'
+      'Original FTP HD')
   end
   object CheckBox3: TCheckBox
     Left = 8
@@ -469,6 +469,16 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 18
     OnDblClick = ListBox1DblClick
+  end
+  object Button3: TButton
+    Left = 184
+    Top = 40
+    Width = 75
+    Height = 25
+    Caption = 'Button3'
+    TabOrder = 19
+    Visible = False
+    OnClick = Button3Click
   end
   object IdHTTP1: TIdHTTP
     MaxLineAction = maException
