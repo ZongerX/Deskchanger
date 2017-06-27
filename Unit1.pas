@@ -150,17 +150,17 @@ procedure CheckUpdate();
 var
   last:string;
 begin
-  //Проверка обновления
+  //РџСЂРѕРІРµСЂРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ
   try
     last:=Form1.idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt');
       if ver<>last then
         begin
           Form1.Label2.Visible:=true;
-          Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
+          Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Р”РѕСЃС‚СѓРїРЅР° РЅРѕРІР°СЏ РІРµСЂСЃРёСЏ '+last, bitInfo, 10);
           idhttp1.ClearWriteBuffer;
         end;
   except
-    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Не удалось проверить обновление ', bitError, 10);
+    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ РѕР±РЅРѕРІР»РµРЅРёРµ ', bitError, 10);
   end;
 end;
 
@@ -168,7 +168,7 @@ procedure SetWallpaper(sWallpaperBMPPath: string; bTile: boolean);
 var 
   reg: TRegIniFile;
 begin 
-  //     Изменяем ключи реестра 
+  //     РР·РјРµРЅСЏРµРј РєР»СЋС‡Рё СЂРµРµСЃС‚СЂР° 
   //     HKEY_CURRENT_USER
   //     Control Panel\Desktop
   //     TileWallpaper (REG_SZ) 
@@ -250,9 +250,9 @@ end;
 
 procedure TForm1.Edit3KeyPress(Sender: TObject; var Key: Char);
 const
- Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
+ Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РґРѕСЃС‚СѓРїР° Рє СЂР°Р±РѕС‡РµРјСѓ СЃС‚РѕР»Сѓ
 var
-  ActiveDeskTop:IActiveDesktop; //Активация рабочего стола
+  ActiveDeskTop:IActiveDesktop; //РђРєС‚РёРІР°С†РёСЏ СЂР°Р±РѕС‡РµРіРѕ СЃС‚РѕР»Р°
 begin
 if key = #13 then
 begin
@@ -269,9 +269,9 @@ begin
   if pos('.jpg',edit3.Text)<>0 then
     begin
       idftp1.Get(edit3.text, GetWin('%AppData%')+'\img', true);
-      ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //создаем объект и получаем разрешение доступа к рабочему столу
-      ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // определились с выбором картинки
-      ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // применяем картинку на рабочем столе
+      ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //СЃРѕР·РґР°РµРј РѕР±СЉРµРєС‚ Рё РїРѕР»СѓС‡Р°РµРј СЂР°Р·СЂРµС€РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє СЂР°Р±РѕС‡РµРјСѓ СЃС‚РѕР»Сѓ
+      ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // РѕРїСЂРµРґРµР»РёР»РёСЃСЊ СЃ РІС‹Р±РѕСЂРѕРј РєР°СЂС‚РёРЅРєРё
+      ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // РїСЂРёРјРµРЅСЏРµРј РєР°СЂС‚РёРЅРєСѓ РЅР° СЂР°Р±РѕС‡РµРј СЃС‚РѕР»Рµ
     end
       else
         begin
@@ -289,11 +289,11 @@ procedure TForm1.Button1Click(Sender: TObject);
 var
   buf: TMemoryStream;
 begin
-  //Подгрузка конфига с переводом
+  //РџРѕРґРіСЂСѓР·РєР° РєРѕРЅС„РёРіР° СЃ РїРµСЂРµРІРѕРґРѕРј
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\Config.ini');
-  if (Combobox1.Text=IniFile.ReadString('LANG','CHOOSELINK','Выберите ссылку')) or (ComboBox1.Text='')   then
+  if (Combobox1.Text=IniFile.ReadString('LANG','CHOOSELINK','Р’С‹Р±РµСЂРёС‚Рµ СЃСЃС‹Р»РєСѓ')) or (ComboBox1.Text='')   then
     begin
-      CoolTrayIcon1.ShowBalloonHint('Desktop Changer', IniFile.ReadString('LANG','CHOOSELINK','Выберите ссылку'), bitwarning, 10);
+      CoolTrayIcon1.ShowBalloonHint('Desktop Changer', IniFile.ReadString('LANG','CHOOSELINK','Р’С‹Р±РµСЂРёС‚Рµ СЃСЃС‹Р»РєСѓ'), bitwarning, 10);
       exit;
     end;
       if ComboBox1.Text='Original FTP' then
@@ -310,36 +310,36 @@ begin
               end;
 
   Button1.Enabled:=false;
-  Button1.Caption:=(IniFile.ReadString('LANG','DOWNLOADING','Загрузка ')+'...');
-  CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','DOWNLOADING','Загрузка ...'));
+  Button1.Caption:=(IniFile.ReadString('LANG','DOWNLOADING','Р—Р°РіСЂСѓР·РєР° ')+'...');
+  CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','DOWNLOADING','Р—Р°РіСЂСѓР·РєР° ...'));
   if pos('http://', Combobox1.Text)=0 then ComboBox1.Text:=('http://'+Combobox1.Text);
     try
       begin
-        //Загрузка изображения
+        //Р—Р°РіСЂСѓР·РєР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
         idHTTP1.get(Combobox1.Text);
-        //Проверка на редирект
+        //РџСЂРѕРІРµСЂРєР° РЅР° СЂРµРґРёСЂРµРєС‚
         buf:=TMemoryStream.Create;
         if redir=true then idHTTP1.Get(url, buf)
           else idHTTP1.Get(Combobox1.Text, buf);
-        Button1.Caption:=(IniFile.ReadString('LANG','INSTALL','Установка'+'...'));
+        Button1.Caption:=(IniFile.ReadString('LANG','INSTALL','РЈСЃС‚Р°РЅРѕРІРєР°'+'...'));
         Button1.Update;
-        //Сохранение
+        //РЎРѕС…СЂР°РЅРµРЅРёРµ
         buf.SaveToFile(GetWin('%AppData%')+'\img.jpg');
 //        buf.Clear;
-        //Установка обоев
+        //РЈСЃС‚Р°РЅРѕРІРєР° РѕР±РѕРµРІ
         SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
 //        deletefile(Pchar(GetWin('%AppData%')+'\img'));
-        if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены'), bitinfo, 10);
+        if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','РћР±РѕРё РѕР±РЅРѕРІР»РµРЅС‹'), bitinfo, 10);
         label4.Visible:=true;
-        label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление: ')+FormatDateTime('hh:mm',now));
-        CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление: ')+FormatDateTime('hh:mm',now));
+        label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ: ')+FormatDateTime('hh:mm',now));
+        CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ: ')+FormatDateTime('hh:mm',now));
       end;
     except
-      Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
+      Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','РћР±РЅРѕРІРёС‚СЊ'));
       Button1.Enabled:=true;
 //      idhttp1.Disconnect;
     end;
-  Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
+  Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','РћР±РЅРѕРІРёС‚СЊ'));
   Button1.Enabled:=true;
   IniFile.Free;
 end;
@@ -348,10 +348,10 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 begin
 try
   if Combobox2.ItemIndex<>0 then button1.Click;  
-  CheckUpdate(); //Проверка обновления
+  CheckUpdate(); //РџСЂРѕРІРµСЂРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ
 //  idhttp1.Disconnect;
 except
-  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Проверьте интернет соединение!'), biterror, 10);
+  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','РџСЂРѕРІРµСЂСЊС‚Рµ РёРЅС‚РµСЂРЅРµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ!'), biterror, 10);
 end;
 end;
 
@@ -411,10 +411,10 @@ var
   ProxyPort:integer;
 begin
 try
-  //Параметры запуска
+  //РџР°СЂР°РјРµС‚СЂС‹ Р·Р°РїСѓСЃРєР°
   startparam := ParamStr(1);
   if startparam = '/s' then Application.ShowMainForm:=false;
-  if startparam = '/upd' then CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Программа обновлена!', bitInfo, 10);
+  if startparam = '/upd' then CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'РџСЂРѕРіСЂР°РјРјР° РѕР±РЅРѕРІР»РµРЅР°!', bitInfo, 10);
   if startparam = '/deb' then
     begin
       button2.Visible:=true;
@@ -428,24 +428,24 @@ try
   Form1.Caption:=(Form1.Caption+' '+ver);
   CoolTrayIcon1.Hint:=('DeskChanger '+ver);
   Form1.ClientHeight:=115;
-//^ Не трогать
+//^ РќРµ С‚СЂРѕРіР°С‚СЊ
 
-  //INI Считывание
+  //INI РЎС‡РёС‚С‹РІР°РЅРёРµ
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\'+'Config.ini');
-  Button1.Caption:=IniFile.ReadString('LANG','UPDATE','Обновить');
-  Label2.Caption:=IniFile.ReadString('LANG','UPDATEPROGRAM','Обновить программу!');
-  Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление: ');
-  Label5.Caption:=IniFile.ReadString('LANG','WINDSMAP','Карта ветров');
-  Label6.Caption:=IniFile.ReadString('LANG','SUPPORT','Поддержка');
-  Label7.Caption:=IniFile.ReadString('LANG','SETTINGS','Настройки');
-  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK','Выберите ссылку');
+  Button1.Caption:=IniFile.ReadString('LANG','UPDATE','РћР±РЅРѕРІРёС‚СЊ');
+  Label2.Caption:=IniFile.ReadString('LANG','UPDATEPROGRAM','РћР±РЅРѕРІРёС‚СЊ РїСЂРѕРіСЂР°РјРјСѓ!');
+  Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ: ');
+  Label5.Caption:=IniFile.ReadString('LANG','WINDSMAP','РљР°СЂС‚Р° РІРµС‚СЂРѕРІ');
+  Label6.Caption:=IniFile.ReadString('LANG','SUPPORT','РџРѕРґРґРµСЂР¶РєР°');
+  Label7.Caption:=IniFile.ReadString('LANG','SETTINGS','РќР°СЃС‚СЂРѕР№РєРё');
+  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK','Р’С‹Р±РµСЂРёС‚Рµ СЃСЃС‹Р»РєСѓ');
   Label7.Left:=IniFile.ReadInteger('FONT','Label7',254);
   Label6.Left:=IniFile.ReadInteger('FONT','Label6',193);
   Label5.Left:=IniFile.ReadInteger('FONT','Label5',121);
   IniFile.Free;
 //  showmessage(ExtractFileDir(Application.ExeName)+'\Config.ini');
 
-  //Выставление интервала обновления
+  //Р’С‹СЃС‚Р°РІР»РµРЅРёРµ РёРЅС‚РµСЂРІР°Р»Р° РѕР±РЅРѕРІР»РµРЅРёСЏ
   if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
     else Timer1.Enabled:=true;
   if Combobox2.ItemIndex=1 then Timer1.Interval:=900000;
@@ -453,18 +453,18 @@ try
   if Combobox2.ItemIndex=3 then Timer1.Interval:=3600000;
   if Combobox2.ItemIndex=4 then Timer1.Interval:=7200000;
 
-  //Горячие клавиши
+  //Р“РѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё
   RegisterHotkey(Handle, 1, MOD_SHIFT, VK_F9);
 
-  //Загрузка настроек из реестра
+  //Р—Р°РіСЂСѓР·РєР° РЅР°СЃС‚СЂРѕРµРє РёР· СЂРµРµСЃС‚СЂР°
   reg:= TRegistry.Create(KEY_READ);
   reg.RootKey := HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', False);
 
-  //Загрузка ссылки
+  //Р—Р°РіСЂСѓР·РєР° СЃСЃС‹Р»РєРё
   if reg.ValueExists('Link') then ComboBox1.text:=(reg.ReadString('Link'));
 
-  //Оповещение
+  //РћРїРѕРІРµС‰РµРЅРёРµ
   if reg.ValueExists('Notification') then
   begin
     Checkbox2.Checked:=true;
@@ -476,7 +476,7 @@ try
         N2.Checked:=false;
       end;
 
-  //Иконка в трее
+  //РРєРѕРЅРєР° РІ С‚СЂРµРµ
   if reg.ReadString('TrayIcon')='1' then
   begin
     CoolTrayicon1.IconVisible:=true;
@@ -489,7 +489,7 @@ try
     CheckBox2.Enabled:=false
   end;
 
-  //Загрузка настроек прокси из системы
+  //Р—Р°РіСЂСѓР·РєР° РЅР°СЃС‚СЂРѕРµРє РїСЂРѕРєСЃРё РёР· СЃРёСЃС‚РµРјС‹
   if reg.ReadString('AutoProxy')='1' then
   begin
     GetProxyData(isProxyEnabled, ProxyServer, ProxyPort);
@@ -503,19 +503,19 @@ try
 
   if reg.ReadString('AutoProxy')='0' then
   begin
-    //Загрузка настроек прокси из программы
+    //Р—Р°РіСЂСѓР·РєР° РЅР°СЃС‚СЂРѕРµРє РїСЂРѕРєСЃРё РёР· РїСЂРѕРіСЂР°РјРјС‹
     if reg.ValueExists('ProxyServer') then edit2.Text:=(reg.ReadString('ProxyServer'));
     if reg.ValueExists('ProxyPort') then edit1.Text:=(reg.ReadString('ProxyPort'));
   end;
 
-  //Загрузка частоты обновления
+  //Р—Р°РіСЂСѓР·РєР° С‡Р°СЃС‚РѕС‚С‹ РѕР±РЅРѕРІР»РµРЅРёСЏ
   if reg.ReadString('Update')='0'   then Combobox2.ItemIndex:=0;
   if reg.ReadString('Update')='15'  then Combobox2.ItemIndex:=1;
   if reg.ReadString('Update')='30'  then Combobox2.ItemIndex:=2;
   if reg.ReadString('Update')='60'  then Combobox2.ItemIndex:=3;
   if reg.ReadString('Update')='120' then Combobox2.ItemIndex:=4;
 
-  //Дебаг режим
+  //Р”РµР±Р°Рі СЂРµР¶РёРј
   if reg.ValueExists('Debug') then
     begin
       button2.Visible:=true;
@@ -525,10 +525,10 @@ try
       label3.Visible:=true;
     end;
 
-   //Изображение по центру
+   //РР·РѕР±СЂР°Р¶РµРЅРёРµ РїРѕ С†РµРЅС‚СЂСѓ
    if reg.ValueExists('WallpaperStyle') then Checkbox5.Checked:=true;
 
-  //Проверка на запись автозапуска в реестре
+  //РџСЂРѕРІРµСЂРєР° РЅР° Р·Р°РїРёСЃСЊ Р°РІС‚РѕР·Р°РїСѓСЃРєР° РІ СЂРµРµСЃС‚СЂРµ
   reg:= TRegistry.Create(KEY_READ);
   reg.RootKey := HKEY_CURRENT_USER;
   reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', False);
@@ -539,17 +539,17 @@ try
     end;
 
 except
- CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,'При запуске что-то пошло не так!', biterror, 10);
+ CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,'РџСЂРё Р·Р°РїСѓСЃРєРµ С‡С‚Рѕ-С‚Рѕ РїРѕС€Р»Рѕ РЅРµ С‚Р°Рє!', biterror, 10);
 end;
 
 try
 if Checkbox4.Checked=true then Combobox1.Items.Text:=(idhttp1.Get('http://games-wars.ucoz.ru/servers.txt'));
 except
-  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Проверьте интернет соединение!'), biterror, 10);
+  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','РџСЂРѕРІРµСЂСЊС‚Рµ РёРЅС‚РµСЂРЅРµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ!'), biterror, 10);
 end;
 end;
 
-//Действие при хоткее
+//Р”РµР№СЃС‚РІРёРµ РїСЂРё С…РѕС‚РєРµРµ
 procedure TForm1.WMHotkey( var msg: TWMHotkey );
 begin
   if msg.hotkey = 1 then Form1.Show;
@@ -694,7 +694,7 @@ begin
     ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe /upd'), nil, nil, SW_HIDE);
     DeleteFile(Pchar(Application.Title+'.old'));
   except
-    Showmessage('Не удалось обновить программу');
+    Showmessage('РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РїСЂРѕРіСЂР°РјРјСѓ');
     Application.Terminate;
   end;
 end;
@@ -766,7 +766,7 @@ end;
 procedure TForm1.CheckBox3MouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  if CheckBox3.Checked=false then Showmessage('Горячие клавиши для показа главного окна Shift+F9');
+  if CheckBox3.Checked=false then Showmessage('Р“РѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё РґР»СЏ РїРѕРєР°Р·Р° РіР»Р°РІРЅРѕРіРѕ РѕРєРЅР° Shift+F9');
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -896,7 +896,7 @@ begin
   Deletefile(Pchar(ExtractFileDir(Application.ExeName)+'\'+'Config.ini'));
   reg.CloseKey;
   reg.Free;
-  Showmessage('Все настройки удалены');
+  Showmessage('Р’СЃРµ РЅР°СЃС‚СЂРѕР№РєРё СѓРґР°Р»РµРЅС‹');
 end;
 
 procedure TForm1.CheckBox4Click(Sender: TObject);
@@ -967,15 +967,15 @@ var
   startparam:string;
 begin
   try
-  //Загрузка списка ссылок
+  //Р—Р°РіСЂСѓР·РєР° СЃРїРёСЃРєР° СЃСЃС‹Р»РѕРє
   reg:= TRegistry.Create(KEY_READ);
   reg.RootKey:=HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', False);
   if reg.ReadString('ServerLinks')='1' then checkbox4.Checked:=true;
 
-  CheckUpdate();  //Проверка обновления
+  CheckUpdate();  //РџСЂРѕРІРµСЂРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ
 
-  //Обновление изображения при запуске
+  //РћР±РЅРѕРІР»РµРЅРёРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РїСЂРё Р·Р°РїСѓСЃРєРµ
   startparam := ParamStr(1);
   if startparam = '/s' then
     begin
@@ -985,7 +985,7 @@ begin
 
   Timer2.Enabled:=false;
 except
-  if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Проверьте интернет соединение', biterror, 10);
+  if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'РџСЂРѕРІРµСЂСЊС‚Рµ РёРЅС‚РµСЂРЅРµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ', biterror, 10);
 end;
 end;
 
@@ -1035,30 +1035,30 @@ end;
 procedure TForm1.Label8Click(Sender: TObject);
 begin
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\Config.ini');
-  IniFile.WriteString('LANG','UPDATE','Обновить');
-  IniFile.WriteString('LANG','UPDATEPROGRAM','Обновить программу!');
-  IniFile.WriteString('LANG','LASTUPDATE','Последнее обновление:');
-  IniFile.WriteString('LANG','WINDSMAP','Карта ветров');
-  IniFile.WriteString('LANG','SUPPORT','Поддержка');
-  IniFile.WriteString('LANG','SETTINGS','Настройки');
-  IniFile.WriteString('LANG','PROXY','Прокси');
-  IniFile.WriteString('LANG','AUTOSEARCH','Автоопределение');
-  IniFile.WriteString('LANG','SETPROXY','Указать прокси вручную');
-  IniFile.WriteString('LANG','SERVERLINKS','Ссылки с сервера');
-  IniFile.WriteString('LANG','TRAYICON','Иконка в трее');
-  IniFile.WriteString('LANG','NOTIFICATION','Оповещение');
-  IniFile.WriteString('LANG','AUTOSTART','Автозапуск');
-  IniFile.WriteString('LANG','CHOOSELINK','Выберите ссылку');
-  IniFile.WriteString('LANG','DESKTOPUPDATE','Обои обновлены');
-  IniFile.WriteString('LANG','DOWNLOADING','Загрузка');
-  IniFile.WriteString('LANG','INSTALL','Установка');
-  IniFile.WriteString('LANG','CHECKINTERNET','Проверьте интернет соединение!');
-  IniFile.WriteString('LANG','UPDATEINTERVAL','Интервал обновления:');
+  IniFile.WriteString('LANG','UPDATE','РћР±РЅРѕРІРёС‚СЊ');
+  IniFile.WriteString('LANG','UPDATEPROGRAM','РћР±РЅРѕРІРёС‚СЊ РїСЂРѕРіСЂР°РјРјСѓ!');
+  IniFile.WriteString('LANG','LASTUPDATE','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ:');
+  IniFile.WriteString('LANG','WINDSMAP','РљР°СЂС‚Р° РІРµС‚СЂРѕРІ');
+  IniFile.WriteString('LANG','SUPPORT','РџРѕРґРґРµСЂР¶РєР°');
+  IniFile.WriteString('LANG','SETTINGS','РќР°СЃС‚СЂРѕР№РєРё');
+  IniFile.WriteString('LANG','PROXY','РџСЂРѕРєСЃРё');
+  IniFile.WriteString('LANG','AUTOSEARCH','РђРІС‚РѕРѕРїСЂРµРґРµР»РµРЅРёРµ');
+  IniFile.WriteString('LANG','SETPROXY','РЈРєР°Р·Р°С‚СЊ РїСЂРѕРєСЃРё РІСЂСѓС‡РЅСѓСЋ');
+  IniFile.WriteString('LANG','SERVERLINKS','РЎСЃС‹Р»РєРё СЃ СЃРµСЂРІРµСЂР°');
+  IniFile.WriteString('LANG','TRAYICON','РРєРѕРЅРєР° РІ С‚СЂРµРµ');
+  IniFile.WriteString('LANG','NOTIFICATION','РћРїРѕРІРµС‰РµРЅРёРµ');
+  IniFile.WriteString('LANG','AUTOSTART','РђРІС‚РѕР·Р°РїСѓСЃРє');
+  IniFile.WriteString('LANG','CHOOSELINK','Р’С‹Р±РµСЂРёС‚Рµ СЃСЃС‹Р»РєСѓ');
+  IniFile.WriteString('LANG','DESKTOPUPDATE','РћР±РѕРё РѕР±РЅРѕРІР»РµРЅС‹');
+  IniFile.WriteString('LANG','DOWNLOADING','Р—Р°РіСЂСѓР·РєР°');
+  IniFile.WriteString('LANG','INSTALL','РЈСЃС‚Р°РЅРѕРІРєР°');
+  IniFile.WriteString('LANG','CHECKINTERNET','РџСЂРѕРІРµСЂСЊС‚Рµ РёРЅС‚РµСЂРЅРµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ!');
+  IniFile.WriteString('LANG','UPDATEINTERVAL','РРЅС‚РµСЂРІР°Р» РѕР±РЅРѕРІР»РµРЅРёСЏ:');
   IniFile.WriteInteger('FONT','Label7',253);
   IniFile.WriteInteger('FONT','Label6',192);
   IniFile.WriteInteger('FONT','Label5',120);
 
-  //Установка
+  //РЈСЃС‚Р°РЅРѕРІРєР°
   Button1.Caption:=IniFile.ReadString('LANG','UPDATE',Button1.Caption);
   Label2.Caption:=IniFile.ReadString('LANG','UPDATEPROGRAM',Label2.Caption);
   Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE',Label4.Caption);
@@ -1083,7 +1083,7 @@ end;
 
 procedure TForm1.Label9Click(Sender: TObject);
 begin
-  //Запись в файл конфигурации
+  //Р—Р°РїРёСЃСЊ РІ С„Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\Config.ini');
   IniFile.WriteString('LANG','UPDATE','Update');
   IniFile.WriteString('LANG','UPDATEPROGRAM','Update programm!');
@@ -1109,7 +1109,7 @@ begin
   IniFile.WriteInteger('FONT','Label5',176);
 
 
-  //Установка
+  //РЈСЃС‚Р°РЅРѕРІРєР°
   Button1.Caption:=IniFile.ReadString('LANG','UPDATE',Button1.Caption);
   Label2.Caption:=IniFile.ReadString('LANG','UPDATEPROGRAM',Label2.Caption);
   Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE',Label4.Caption);
@@ -1161,7 +1161,7 @@ procedure TForm1.ComboBox2Change(Sender: TObject);
   var
     reg:TRegistry;
 begin
-  //Выставление интервала обновления
+  //Р’С‹СЃС‚Р°РІР»РµРЅРёРµ РёРЅС‚РµСЂРІР°Р»Р° РѕР±РЅРѕРІР»РµРЅРёСЏ
   if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
     else Timer1.Enabled:=true;
   if Combobox2.ItemIndex=1 then Timer1.Interval:=900000;
@@ -1207,62 +1207,62 @@ begin
   try
   FTP:=TStringList.Create;
 
-  Date:=(DateToStr(GetCurrentDateTime)); //сегодняшнюю дату в тип str и в переменную
-  Mon:=Date[4]+Date[5];//месяц 4 и 5 цифра
-  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //год 7,8,9,10 цифры
+  Date:=(DateToStr(GetCurrentDateTime)); //СЃРµРіРѕРґРЅСЏС€РЅСЋСЋ РґР°С‚Сѓ РІ С‚РёРї str Рё РІ РїРµСЂРµРјРµРЅРЅСѓСЋ
+  Mon:=Date[4]+Date[5];//РјРµСЃСЏС† 4 Рё 5 С†РёС„СЂР°
+  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //РіРѕРґ 7,8,9,10 С†РёС„СЂС‹
 
-  //Определение настроек FTP
+  //РћРїСЂРµРґРµР»РµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє FTP
   Form1.idftp1.Host:='217.174.103.107';
   Form1.idftp1.Port:=21;
   Form1.idftp1.Username:='electro';
   Form1.idftp1.Password:='electro';
 
-  //Начало поиска, оповещение пользователя
+  //РќР°С‡Р°Р»Рѕ РїРѕРёСЃРєР°, РѕРїРѕРІРµС‰РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
   Form1.Button1.Enabled:=false;
-  Form1.Button1.Caption:='Поиск снимка...';
+  Form1.Button1.Caption:='РџРѕРёСЃРє СЃРЅРёРјРєР°...';
   Form1.Update;
 
   Try
     begin
-      //Подключение к ftp
-      Form1.Button1.Caption:='Подключение к FTP...';
-      Form1.idftp1.Disconnect;  //Отключение (вдруг подключено)
-      Form1.idftp1.Connect(true, 60000);  //Подключение
-      AssErt(Form1.idftp1.Connected);     //Подключение
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
+      //РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє ftp
+      Form1.Button1.Caption:='РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє FTP...';
+      Form1.idftp1.Disconnect;  //РћС‚РєР»СЋС‡РµРЅРёРµ (РІРґСЂСѓРі РїРѕРґРєР»СЋС‡РµРЅРѕ)
+      Form1.idftp1.Connect(true, 60000);  //РџРѕРґРєР»СЋС‡РµРЅРёРµ
+      AssErt(Form1.idftp1.Connected);     //РџРѕРґРєР»СЋС‡РµРЅРёРµ
+      Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
       
-      //Переход в корень FTP
-      Button1.Caption:='Переход в корень FTP...';
+      //РџРµСЂРµС…РѕРґ РІ РєРѕСЂРµРЅСЊ FTP
+      Button1.Caption:='РџРµСЂРµС…РѕРґ РІ РєРѕСЂРµРЅСЊ FTP...';
       Edit3.Text:='/ELECTRO_L_2/';
-      Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
+      Form1.idftp1.ChangeDir(Form1.edit3.text);      //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
 
-      //Год
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      Edit3.Text:=edit3.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      If checkbox6.Checked=false then //Если авто включено
+      //Р“РѕРґ
+      Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
+      Edit3.Text:=edit3.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//РџРµСЂРµР№С‚Рё РїРѕ РїРѕСЃР»РµРґРЅРµРјСѓ РїСѓРЅРєС‚Сѓ РёР· СЃРїРёСЃРєР°
+      If checkbox6.Checked=false then //Р•СЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);     //Смена директории FTP
-          Form1.idFTP1.List(ListBox1.Items,'',false);   //Вывод списка папок
+          Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);     //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          Form1.idFTP1.List(ListBox1.Items,'',false);   //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
         end
           else Exit;
-//      showmessage('год выбрали '+edit3.text);
+//      showmessage('РіРѕРґ РІС‹Р±СЂР°Р»Рё '+edit3.text);
 
-      //Месяц
+      //РњРµСЃСЏС†
       Form1.idFTP1.List(ListBox1.Items,'',false);
-      If checkbox6.Checked=false then //если авто включено
+      If checkbox6.Checked=false then //РµСЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);   //Смена директории FTP
-          Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
+          Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);   //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
         end
           else Exit;
-      Form1.Button1.Caption:='Год найден...';
+      Form1.Button1.Caption:='Р“РѕРґ РЅР°Р№РґРµРЅ...';
 
-      Button1.Caption:='Расшифровываю древние свитки...';
-//      showmessage('Перевожу слова в цифры');
+      Button1.Caption:='Р Р°СЃС€РёС„СЂРѕРІС‹РІР°СЋ РґСЂРµРІРЅРёРµ СЃРІРёС‚РєРё...';
+//      showmessage('РџРµСЂРµРІРѕР¶Сѓ СЃР»РѕРІР° РІ С†РёС„СЂС‹');
 
-      //Перевод слов в цифры
+      //РџРµСЂРµРІРѕРґ СЃР»РѕРІ РІ С†РёС„СЂС‹
       if pos('January', Form1.Listbox1.Items.Text)>0 then Form1.memo2.Lines.Add('01');
       if pos('February', Form1.Listbox1.Items.Text)>0 then Form1.memo2.Lines.Add('02');
       if pos('Mart', Form1.Listbox1.Items.Text)>0 then Form1.memo2.Lines.Add('03');
@@ -1277,8 +1277,8 @@ begin
       if pos('December', Form1.Listbox1.Items.Text)>0 then Form1.memo2.Lines.Add('12');
 
       
-      Mon:=(Memo2.Lines[Memo2.Lines.Count-1]); //Последнее значение memo2 в переменную
-      //Перевод числовых значений месяца в строковые
+      Mon:=(Memo2.Lines[Memo2.Lines.Count-1]); //РџРѕСЃР»РµРґРЅРµРµ Р·РЅР°С‡РµРЅРёРµ memo2 РІ РїРµСЂРµРјРµРЅРЅСѓСЋ
+      //РџРµСЂРµРІРѕРґ С‡РёСЃР»РѕРІС‹С… Р·РЅР°С‡РµРЅРёР№ РјРµСЃСЏС†Р° РІ СЃС‚СЂРѕРєРѕРІС‹Рµ
       if Mon='01' then MonStr:='January';
       if Mon='02' then MonStr:='February';
       if Mon='03' then MonStr:='Mart';
@@ -1292,74 +1292,74 @@ begin
       if Mon='11' then MonStr:='November';
       if Mon='12' then MonStr:='December';
 
-      Edit3.Text:=(edit3.Text+MonStr+'/'); //Добавляем буквенный месяц из переменной
+      Edit3.Text:=(edit3.Text+MonStr+'/'); //Р”РѕР±Р°РІР»СЏРµРј Р±СѓРєРІРµРЅРЅС‹Р№ РјРµСЃСЏС† РёР· РїРµСЂРµРјРµРЅРЅРѕР№
 
-      If checkbox6.Checked=false then //если авто включено
+      If checkbox6.Checked=false then //РµСЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Form1.Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);   //Смена директории FTP
-          Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
+          Form1.Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);   //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
         end
           else Exit;
-      Form1.Button1.Caption:='Месяц найден...';
-//      showmessage('Месяц найден '+edit3.Text);
+      Form1.Button1.Caption:='РњРµСЃСЏС† РЅР°Р№РґРµРЅ...';
+//      showmessage('РњРµСЃСЏС† РЅР°Р№РґРµРЅ '+edit3.Text);
 
-      //Число
-      Form1.edit3.Text:=Form1.edit3.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      If checkbox6.Checked=false then //если авто включено
+      //Р§РёСЃР»Рѕ
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//РџРµСЂРµР№С‚Рё РїРѕ РїРѕСЃР»РµРґРЅРµРјСѓ РїСѓРЅРєС‚Сѓ РёР· СЃРїРёСЃРєР°
+      Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
+      If checkbox6.Checked=false then //РµСЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Form1.Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);      //Смена директории FTP
-          Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
+          Form1.Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);      //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
         end
           else Exit;
-     Form1.Button1.Caption:='Число найдено...';
-//     showmessage('Число найдено '+edit3.Text);
+     Form1.Button1.Caption:='Р§РёСЃР»Рѕ РЅР°Р№РґРµРЅРѕ...';
+//     showmessage('Р§РёСЃР»Рѕ РЅР°Р№РґРµРЅРѕ '+edit3.Text);
 
-      //Снимок
-      Form1.edit3.Text:=Form1.edit3.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      If checkbox6.Checked=false then //если авто включено
+      //РЎРЅРёРјРѕРє
+      Form1.edit3.Text:=Form1.edit3.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//РџРµСЂРµР№С‚Рё РїРѕ РїРѕСЃР»РµРґРЅРµРјСѓ РїСѓРЅРєС‚Сѓ РёР· СЃРїРёСЃРєР°
+      Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
+      If checkbox6.Checked=false then //РµСЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Form1.Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);   //Смена директории FTP
-          Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
+          Form1.Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);   //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
         end
           else Exit;
 
-      Form1.Button1.Caption:='Снимок найден...';
+      Form1.Button1.Caption:='РЎРЅРёРјРѕРє РЅР°Р№РґРµРЅ...';
       Edit3.Text:=Edit3.Text+Listbox1.Items[Listbox1.Items.Count-2];
-      Form1.Button1.Caption:='Загрузка снимка...'+Listbox1.Items[Form1.Listbox1.Items.Count-2];
+      Form1.Button1.Caption:='Р—Р°РіСЂСѓР·РєР° СЃРЅРёРјРєР°...'+Listbox1.Items[Form1.Listbox1.Items.Count-2];
      
-    //Выбор и загрузка HD или обычного снимка
+    //Р’С‹Р±РѕСЂ Рё Р·Р°РіСЂСѓР·РєР° HD РёР»Рё РѕР±С‹С‡РЅРѕРіРѕ СЃРЅРёРјРєР°
     if hd=true then
-           Form1.idftp1.Get(Listbox1.Items[Listbox1.Items.Count-1], GetWin('%AppData%')+'\img.jpg', true) //Скачивание
-      else Form1.idftp1.Get(Listbox1.Items[Listbox1.Items.Count-2], GetWin('%AppData%')+'\img.jpg', true); //Скачивание
+           Form1.idftp1.Get(Listbox1.Items[Listbox1.Items.Count-1], GetWin('%AppData%')+'\img.jpg', true) //РЎРєР°С‡РёРІР°РЅРёРµ
+      else Form1.idftp1.Get(Listbox1.Items[Listbox1.Items.Count-2], GetWin('%AppData%')+'\img.jpg', true); //РЎРєР°С‡РёРІР°РЅРёРµ
 
-	  //Оповещение
-	  Form1.Button1.Caption:='Установка изображения...';
+	  //РћРїРѕРІРµС‰РµРЅРёРµ
+	  Form1.Button1.Caption:='РЈСЃС‚Р°РЅРѕРІРєР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ...';
     Form1.Update;
 
-	  //Применение к рабочему столу
+	  //РџСЂРёРјРµРЅРµРЅРёРµ Рє СЂР°Р±РѕС‡РµРјСѓ СЃС‚РѕР»Сѓ
     SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
 
-    //Оповещения об обновлении
-    if Form1.checkbox2.Checked then Form1.CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены '+#13+edit3.Text), bitinfo, 10);
+    //РћРїРѕРІРµС‰РµРЅРёСЏ РѕР± РѕР±РЅРѕРІР»РµРЅРёРё
+    if Form1.checkbox2.Checked then Form1.CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','РћР±РѕРё РѕР±РЅРѕРІР»РµРЅС‹ '+#13+edit3.Text), bitinfo, 10);
 
     Form1.label4.Visible:=true;
-//    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
-//    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
+//    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ:')+' '+FormatDateTime('hh:mm',now));
+//    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ:')+' '+FormatDateTime('hh:mm',now));
 
 	  Form1.idftp1.Disconnect;
-    Form1.Button1.Caption:='Обновить';
+    Form1.Button1.Caption:='РћР±РЅРѕРІРёС‚СЊ';
     Form1.Button1.Enabled:=true;
     end;
   Except
     Form1.idftp1.Disconnect;
-    Form1.Button1.Caption:='Обновить';
-    Form1.label4.Caption:='Проверьте интернет соединение';
-    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
+    Form1.Button1.Caption:='РћР±РЅРѕРІРёС‚СЊ';
+    Form1.label4.Caption:='РџСЂРѕРІРµСЂСЊС‚Рµ РёРЅС‚РµСЂРЅРµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ';
+    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'РћС€РёР±РєР° СЂРµР·РµСЂРІРЅРѕРіРѕ СЃРµСЂРІРµСЂР°', biterror, 10);
     exit;
   End;
   except
@@ -1394,9 +1394,9 @@ end;
 
 procedure TForm1.ListBox1DblClick(Sender: TObject);
 const
- Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
+ Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РґРѕСЃС‚СѓРїР° Рє СЂР°Р±РѕС‡РµРјСѓ СЃС‚РѕР»Сѓ
 var
-  ActiveDeskTop:IActiveDesktop; //Активация рабочего стола
+  ActiveDeskTop:IActiveDesktop; //РђРєС‚РёРІР°С†РёСЏ СЂР°Р±РѕС‡РµРіРѕ СЃС‚РѕР»Р°
   reg: TRegIniFile;
   st: string;
 begin
@@ -1418,21 +1418,21 @@ begin
   Reg.WriteString('desktop', 'TileWallpaper', '0');
   Reg.Free;
   SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
-}     showmessage('.jpg есть!');
+}     showmessage('.jpg РµСЃС‚СЊ!');
       idftp1.Get(edit3.text, GetWin('%AppData%')+'\img', true);
-      ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //создаем объект и получаем разрешение доступа к рабочему столу
-      ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // определились с выбором картинки
-      ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // применяем картинку на рабочем столе
+      ActiveDesktop:=CreateComObject(Desktop) as IActiveDesktop; //СЃРѕР·РґР°РµРј РѕР±СЉРµРєС‚ Рё РїРѕР»СѓС‡Р°РµРј СЂР°Р·СЂРµС€РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє СЂР°Р±РѕС‡РµРјСѓ СЃС‚РѕР»Сѓ
+      ActiveDesktop.SetWallpaper(StringToOleStr(GetWin('%AppData%')+'\img'), 0); // РѕРїСЂРµРґРµР»РёР»РёСЃСЊ СЃ РІС‹Р±РѕСЂРѕРј РєР°СЂС‚РёРЅРєРё
+      ActiveDesktop.ApplyChanges(AD_APPLY_ALL); // РїСЂРёРјРµРЅСЏРµРј РєР°СЂС‚РёРЅРєСѓ РЅР° СЂР°Р±РѕС‡РµРј СЃС‚РѕР»Рµ
     end
       else
         begin
-          showmessage('.jpg не обнаружено!');
+          showmessage('.jpg РЅРµ РѕР±РЅР°СЂСѓР¶РµРЅРѕ!');
           edit3.Text:=(edit3.text+'/');
           st:=Edit3.Text+ListBox1.Items[ListBox1.ItemIndex];
           showmessage(st);
-          Edit3.Text:=Edit3.Text+ListBox1.Items[ListBox1.ItemIndex]; //Выбранную строку в edit3
-          idftp1.ChangeDir(st); //Смена директории FTP
-          idFTP1.List(ListBox1.Items,'',false); //Вывод строк в ListBox
+          Edit3.Text:=Edit3.Text+ListBox1.Items[ListBox1.ItemIndex]; //Р’С‹Р±СЂР°РЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ РІ edit3
+          idftp1.ChangeDir(st); //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+          idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃС‚СЂРѕРє РІ ListBox
           Edit3.SetFocus;
         end;
         
@@ -1443,31 +1443,31 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 begin
-  //Определение настроек FTP
+  //РћРїСЂРµРґРµР»РµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє FTP
   idftp1.Host:='217.174.103.107';
   idftp1.Port:=21;
   idftp1.Username:='electro';
   idftp1.Password:='electro';
 
-  //Подключение к ftp
-  Button1.Caption:='Подключение к FTP...';
-  idftp1.Disconnect;  //Отключение (вдруг подключено)
-  idftp1.Connect(true, 60000);  //Подключение
-  AssErt(idftp1.Connected);     //Подключение
+  //РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє ftp
+  Button1.Caption:='РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє FTP...';
+  idftp1.Disconnect;  //РћС‚РєР»СЋС‡РµРЅРёРµ (РІРґСЂСѓРі РїРѕРґРєР»СЋС‡РµРЅРѕ)
+  idftp1.Connect(true, 60000);  //РџРѕРґРєР»СЋС‡РµРЅРёРµ
+  AssErt(idftp1.Connected);     //РџРѕРґРєР»СЋС‡РµРЅРёРµ
   Edit3.Text:='/ELECTRO_L_2/';
-  idftp1.ChangeDir(edit3.text); //Смена директории FTP
+  idftp1.ChangeDir(edit3.text); //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
 
 
   While pos('.jpg', Edit3.Text)<1 do
     begin
-      //Год
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      Edit3.Text:=edit3.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      If checkbox6.Checked=false then //Если авто включено
+      //Р“РѕРґ
+      Form1.idFTP1.List(ListBox1.Items,'',false); //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
+      Edit3.Text:=edit3.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//РџРµСЂРµР№С‚Рё РїРѕ РїРѕСЃР»РµРґРЅРµРјСѓ РїСѓРЅРєС‚Сѓ РёР· СЃРїРёСЃРєР°
+      If checkbox6.Checked=false then //Р•СЃР»Рё Р°РІС‚Рѕ РІРєР»СЋС‡РµРЅРѕ
         begin
-          Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);     //Смена директории FTP
-//          Form1.idFTP1.List(ListBox1.Items,'',false);   //Вывод списка папок
+          Button1.Caption:='РњРµРЅСЏСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ... '+edit3.Text;
+          Form1.idftp1.ChangeDir(Form1.edit3.text);     //РЎРјРµРЅР° РґРёСЂРµРєС‚РѕСЂРёРё FTP
+//          Form1.idFTP1.List(ListBox1.Items,'',false);   //Р’С‹РІРѕРґ СЃРїРёСЃРєР° РїР°РїРѕРє
           showmessage(edit3.text);
         end
           else
@@ -1480,4 +1480,3 @@ begin
 end;
 
 end.
-
