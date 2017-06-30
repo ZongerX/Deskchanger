@@ -50,7 +50,6 @@ type
     CheckBox5: TCheckBox;
     CheckBox6: TCheckBox;
     ListBox1: TListBox;
-    Button3: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure IdHTTP1Redirect(Sender: TObject; var dest: String;
@@ -119,7 +118,6 @@ type
     procedure Button2Click(Sender: TObject);
     procedure CheckBox5Click(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
   private
     { Private declarations }
     procedure WMHotkey( var msg: TWMHotkey ); message WM_HOTKEY;
@@ -130,7 +128,7 @@ type
 var
   Form1: TForm1;
   IdHTTP1: TIdHTTP;
-  ver: string = '0.6.2';
+  ver: string = '0.6.3';
   redir: boolean;
   IniFile : TIniFile;
   url: string;
@@ -157,10 +155,9 @@ begin
         begin
           Form1.Label2.Visible:=true;
           Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
-          idhttp1.ClearWriteBuffer;
         end;
   except
-    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Не удалось проверить обновление ', bitError, 10);
+    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка обновления программы', bitError, 10);
   end;
 end;
 
@@ -317,18 +314,22 @@ begin
       begin
         //Загрузка изображения
         idHTTP1.get(Combobox1.Text);
+        
         //Проверка на редирект
         buf:=TMemoryStream.Create;
         if redir=true then idHTTP1.Get(url, buf)
           else idHTTP1.Get(Combobox1.Text, buf);
         Button1.Caption:=(IniFile.ReadString('LANG','INSTALL','Установка'+'...'));
         Button1.Update;
+
         //Сохранение
         buf.SaveToFile(GetWin('%AppData%')+'\img.jpg');
-//        buf.Clear;
+        buf.Clear;
+
         //Установка обоев
         SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
-//        deletefile(Pchar(GetWin('%AppData%')+'\img'));
+        deletefile(Pchar(GetWin('%AppData%')+'\img'));
+
         if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены'), bitinfo, 10);
         label4.Visible:=true;
         label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление: ')+FormatDateTime('hh:mm',now));
@@ -337,7 +338,6 @@ begin
     except
       Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
       Button1.Enabled:=true;
-//      idhttp1.Disconnect;
     end;
   Button1.Caption:=(IniFile.ReadString('LANG','UPDATE','Обновить'));
   Button1.Enabled:=true;
@@ -347,11 +347,9 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
 try
-  if Combobox2.ItemIndex<>0 then button1.Click;  
   CheckUpdate(); //Проверка обновления
-//  idhttp1.Disconnect;
 except
-  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Проверьте интернет соединение!'), biterror, 10);
+  CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Ошибка обновления программы!'), biterror, 10);
 end;
 end;
 
@@ -434,7 +432,7 @@ try
   IniFile:=TIniFile.Create(ExtractFileDir(Application.ExeName)+'\'+'Config.ini');
   Button1.Caption:=IniFile.ReadString('LANG','UPDATE','Обновить');
   Label2.Caption:=IniFile.ReadString('LANG','UPDATEPROGRAM','Обновить программу!');
-  Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление: ');
+//  Label4.Caption:=IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление: ');
   Label5.Caption:=IniFile.ReadString('LANG','WINDSMAP','Карта ветров');
   Label6.Caption:=IniFile.ReadString('LANG','SUPPORT','Поддержка');
   Label7.Caption:=IniFile.ReadString('LANG','SETTINGS','Настройки');
@@ -1073,7 +1071,6 @@ begin
   Checkbox2.Caption:=IniFile.ReadString('LANG','NOTIFICATION',Checkbox2.Caption);
   Checkbox1.Caption:=IniFile.ReadString('LANG','AUTOSTART',Checkbox1.Caption);
   Label1.Caption:=IniFile.ReadString('LANG','UPDATEINTERVAL',Label1.Caption);
-//  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK',Combobox1.Text);
   Label7.Left:=IniFile.ReadInteger('FONT','Label7',254);
   Label6.Left:=IniFile.ReadInteger('FONT','Label6',193);
   Label5.Left:=IniFile.ReadInteger('FONT','Label5',121);
@@ -1125,7 +1122,7 @@ begin
   Checkbox1.Caption:=IniFile.ReadString('LANG','AUTOSTART',Checkbox1.Caption);
   Label1.Caption:=IniFile.ReadString('LANG','UPDATEINTERVAL',Label1.Caption);
 
-//  Combobox1.Text:=IniFile.ReadString('LANG','CHOOSELINK',Combobox1.Text);
+  
   Label7.Left:=IniFile.ReadInteger('FONT','Label7',271);
   Label6.Left:=IniFile.ReadInteger('FONT','Label6',232);
   Label5.Left:=IniFile.ReadInteger('FONT','Label5',176);
@@ -1184,7 +1181,7 @@ end;
 
 procedure TForm1.Label10Click(Sender: TObject);
 begin
-ShellExecute(0, 'open', 'ftp://ftp.ntsomz.ru/', nil, nil, SW_SHOW);
+ShellExecute(0, 'open', 'ftp://electro:electro@ftp.ntsomz.ru/', nil, nil, SW_SHOW);
 end;
 
 procedure TForm1.Label10MouseEnter(Sender: TObject);
@@ -1201,11 +1198,11 @@ end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 var
-  FTP: TStringList;
+//  FTP: TStringList;
   Mon,MonStr,Year,Date:String;
 begin
   try
-  FTP:=TStringList.Create;
+//  FTP:=TStringList.Create;
 
   Date:=(DateToStr(GetCurrentDateTime)); //сегодняшнюю дату в тип str и в переменную
   Mon:=Date[4]+Date[5];//месяц 4 и 5 цифра
@@ -1347,9 +1344,9 @@ begin
     //Оповещения об обновлении
     if Form1.checkbox2.Checked then Form1.CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены '+#13+edit3.Text), bitinfo, 10);
 
-    Form1.label4.Visible:=true;
-//    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
-//    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
+    label4.Visible:=true;
+    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
+    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
 
 	  Form1.idftp1.Disconnect;
     Form1.Button1.Caption:='Обновить';
@@ -1397,7 +1394,7 @@ const
  Desktop: TGuid='{75048700-EF1F-11D0-9888-006097DEACF9}'; //для получения доступа к рабочему столу
 var
   ActiveDeskTop:IActiveDesktop; //Активация рабочего стола
-  reg: TRegIniFile;
+//  reg: TRegIniFile;
   st: string;
 begin
   if Form1.IdFTP1.Connected=false then
@@ -1440,43 +1437,5 @@ begin
 end;
 
 
-
-procedure TForm1.Button3Click(Sender: TObject);
-begin
-  //Определение настроек FTP
-  idftp1.Host:='217.174.103.107';
-  idftp1.Port:=21;
-  idftp1.Username:='electro';
-  idftp1.Password:='electro';
-
-  //Подключение к ftp
-  Button1.Caption:='Подключение к FTP...';
-  idftp1.Disconnect;  //Отключение (вдруг подключено)
-  idftp1.Connect(true, 60000);  //Подключение
-  AssErt(idftp1.Connected);     //Подключение
-  Edit3.Text:='/ELECTRO_L_2/';
-  idftp1.ChangeDir(edit3.text); //Смена директории FTP
-
-
-  While pos('.jpg', Edit3.Text)<1 do
-    begin
-      //Год
-      Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      Edit3.Text:=edit3.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      If checkbox6.Checked=false then //Если авто включено
-        begin
-          Button1.Caption:='Меняю директорию... '+edit3.Text;
-          Form1.idftp1.ChangeDir(Form1.edit3.text);     //Смена директории FTP
-//          Form1.idFTP1.List(ListBox1.Items,'',false);   //Вывод списка папок
-          showmessage(edit3.text);
-        end
-          else
-            begin
-              showmessage('.jpg found!');
-              Exit;
-            end;
-    end;
-      
-end;
 
 end.
