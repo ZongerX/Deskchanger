@@ -128,11 +128,12 @@ type
 var
   Form1: TForm1;
   IdHTTP1: TIdHTTP;
-  ver: string = '0.6.3';
+  ver: string = '0.6.31';
   redir: boolean;
   IniFile : TIniFile;
   url: string;
   HD: boolean;
+  uptsec: integer;
 
 implementation
 
@@ -150,7 +151,7 @@ var
 begin
   //Проверка обновления
   try
-    last:=Form1.idhttp1.Get('http://games-wars.ucoz.ru/Lver.txt');
+    last:=Form1.idhttp1.Get('http://deskchanger.ru/Lver.txt');
       if ver<>last then
         begin
           Form1.Label2.Visible:=true;
@@ -347,7 +348,13 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
 try
+  uptsec:=uptsec+5;
   CheckUpdate(); //Проверка обновления
+  if uptsec<=5 then
+    begin
+      button1.Click;
+      Timer1.Interval:=60000
+    end;
 except
   CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Ошибка обновления программы!'), biterror, 10);
 end;
@@ -444,12 +451,12 @@ try
 //  showmessage(ExtractFileDir(Application.ExeName)+'\Config.ini');
 
   //Выставление интервала обновления
-  if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
-    else Timer1.Enabled:=true;
-  if Combobox2.ItemIndex=1 then Timer1.Interval:=900000;
-  if Combobox2.ItemIndex=2 then Timer1.Interval:=1800000;
-  if Combobox2.ItemIndex=3 then Timer1.Interval:=3600000;
-  if Combobox2.ItemIndex=4 then Timer1.Interval:=7200000;
+  if Combobox2.ItemIndex=0 then Timer2.Enabled:=false
+    else Timer2.Enabled:=true;
+  if Combobox2.ItemIndex=1 then Timer2.Interval:=900000;
+  if Combobox2.ItemIndex=2 then Timer2.Interval:=1800000;
+  if Combobox2.ItemIndex=3 then Timer2.Interval:=3600000;
+  if Combobox2.ItemIndex=4 then Timer2.Interval:=7200000;
 
   //Горячие клавиши
   RegisterHotkey(Handle, 1, MOD_SHIFT, VK_F9);
@@ -541,7 +548,7 @@ except
 end;
 
 try
-if Checkbox4.Checked=true then Combobox1.Items.Text:=(idhttp1.Get('http://games-wars.ucoz.ru/servers.txt'));
+if Checkbox4.Checked=true then Combobox1.Items.Text:=(idhttp1.Get('http://deskchanger.ru/servers.txt'));
 except
   CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, IniFile.ReadString('LANG','CHECKINTERNET','Проверьте интернет соединение!'), biterror, 10);
 end;
@@ -684,10 +691,9 @@ begin
     Label2.Caption:=IniFile.ReadString('LANG','UPDATE',Button1.Caption);
     buf:=TMemoryStream.Create;
     RenameFile(Application.ExeName, Application.Title+'.old');
-    idHTTP1.Get('http://games-wars.ucoz.ru/deskchanger.upd',buf);
+    idHTTP1.Get('http://deskchanger.ru/deskchanger.exe',buf);
     buf.SaveToFile(Application.Title+'.exe');
-    IdHTTP1.Free;
-    buf.Free;
+    buf.Clear;
     Application.Terminate;
     ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe /upd'), nil, nil, SW_HIDE);
     DeleteFile(Pchar(Application.Title+'.old'));
@@ -901,7 +907,7 @@ procedure TForm1.CheckBox4Click(Sender: TObject);
 var
   reg:TRegistry;
 begin
-Combobox1.Items.Text:=(idhttp1.Get('http://games-wars.ucoz.ru/servers.txt'));
+Combobox1.Items.Text:=(idhttp1.Get('http://deskchanger.ru/servers.txt'));
 if checkbox4.Checked=true then
   begin
     CheckBox4.Checked:=true;
@@ -962,7 +968,6 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   reg:Tregistry;
-  startparam:string;
 begin
   try
   //Загрузка списка ссылок
@@ -971,17 +976,11 @@ begin
   reg.OpenKey('DeskChanger', False);
   if reg.ReadString('ServerLinks')='1' then checkbox4.Checked:=true;
 
-  CheckUpdate();  //Проверка обновления
+  if label2.Visible then label2.OnClick(self)
+    else  CheckUpdate();  //Проверка обновления
 
-  //Обновление изображения при запуске
-  startparam := ParamStr(1);
-  if startparam = '/s' then
-    begin
-      Application.ShowMainForm:=false;
-      if Combobox2.ItemIndex<>0 then button1.Click;
-    end;
-
-  Timer2.Enabled:=false;
+  if Combobox2.ItemIndex>0 then  button1.Click;
+//  Timer2.Enabled:=false;
 except
   if checkbox2.Checked then CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Проверьте интернет соединение', biterror, 10);
 end;
@@ -1159,12 +1158,12 @@ procedure TForm1.ComboBox2Change(Sender: TObject);
     reg:TRegistry;
 begin
   //Выставление интервала обновления
-  if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
-    else Timer1.Enabled:=true;
-  if Combobox2.ItemIndex=1 then Timer1.Interval:=900000;
-  if Combobox2.ItemIndex=2 then Timer1.Interval:=1800000;
-  if Combobox2.ItemIndex=3 then Timer1.Interval:=3600000;
-  if Combobox2.ItemIndex=4 then Timer1.Interval:=7200000;
+  if Combobox2.ItemIndex=0 then Timer2.Enabled:=false
+    else Timer2.Enabled:=true;
+  if Combobox2.ItemIndex=1 then Timer2.Interval:=900000;
+  if Combobox2.ItemIndex=2 then Timer2.Interval:=1800000;
+  if Combobox2.ItemIndex=3 then Timer2.Interval:=3600000;
+  if Combobox2.ItemIndex=4 then Timer2.Interval:=7200000;
 
 
   reg:=TRegistry.Create;
