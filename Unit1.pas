@@ -158,7 +158,7 @@ begin
           Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
         end;
   except
-    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка обновления программы', bitError, 10);
+    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка проверки обновления программы', bitError, 10);
   end;
 end;
 
@@ -352,7 +352,7 @@ try
   CheckUpdate(); //Проверка обновления
   if uptsec<=5 then
     begin
-      button1.Click;
+      if combobox2.ItemIndex>0 then button1.Click;
       Timer1.Interval:=60000
     end;
 except
