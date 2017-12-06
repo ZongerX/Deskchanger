@@ -1,11 +1,21 @@
-http://east.yaakov.ru/small.png 
-http://east.yaakov.ru/medium.jpg
-http://east.yaakov.ru/large.jpg
-http://electro-l.timur.it/2048_307.jpg
-http://electro-l.timur.it/1280_307.jpg
-http://electro-l.timur.it/1024_307.jpg
-http://electro-l.timur.it/2048_2_307.jpg
-http://electro-l.timur.it/1280_2_307.jpg
-http://electro-l.timur.it/1024_2_307.jpg
-Резервный сервер
-Резервный сервер HD
+Original FTP
+Original FTP HD
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039-all.jpg
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039Color-all.jpg
+http://sohowww.nascom.nasa.gov/data/realtime/eit_284/1024/latest.jpg
+http://sohowww.nascom.nasa.gov/data/realtime/eit_195/1024/latest.jpg
+http://sohowww.nascom.nasa.gov/data/realtime/eit_171/1024/latest.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0171.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0304.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0211.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0131.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0335.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0094.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0171.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0304.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0211.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0131.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0335.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0094.jpg
+http://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIIC.jpg
