@@ -1,5 +1,5 @@
 Original FTP
-Original FTP HD1
+Original FTP HD
 http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039-all.jpg
 http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039Color-all.jpg
 https://sohowww.nascom.nasa.gov/data/realtime/eit_284/1024/latest.jpg
