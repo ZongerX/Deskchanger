@@ -13,6 +13,7 @@ https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0335.jpg
 https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0094.jpg
 https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg
 http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSGIODC_RGBNatColour_NorthernAsia.jpg
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSGIODC_VIS006Color_NorthernAsia.jpg
 https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0171.jpg
 https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0304.jpg
 https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0211.jpg
