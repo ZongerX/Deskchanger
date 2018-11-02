@@ -5,10 +5,11 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
-  IdBaseComponent, IdComponent, IdHTTP, System.Win.TaskbarCore, Vcl.Taskbar,
+  IdBaseComponent, IdComponent, IdHTTP, System.Win.TaskbarCore, System.UITypes, Vcl.Taskbar,
   IdIOHandler, IdIOHandlerSocket, ShellApi, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
   IdExplicitTLSClientServerBase, registry, IdFTP, IdTCPConnection, IdTCPClient,
-  wininet, Vcl.ExtCtrls;
+  wininet, Vcl.ExtCtrls, Vcl.PlatformDefaultStyleActnCtrls, Vcl.Menus,
+  Vcl.ActnPopup;
 
 type
   TForm1 = class(TForm)
@@ -42,13 +43,17 @@ type
     Label7: TLabel;
     Label8: TLabel;
     Timer2: TTimer;
+    PopupActionBar1: TPopupActionBar;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    Обновить: TMenuItem;
+    CheckBox4: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure Edit1KeyPress(Sender: TObject; var Key: Char);
     procedure TrayIcon1Click(Sender: TObject);
-    procedure TrayIcon1BalloonClick(Sender: TObject);
     procedure TrayIcon1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ListBox1ContextPopup(Sender: TObject; MousePos: TPoint;
@@ -92,7 +97,14 @@ type
     procedure Timer2Timer(Sender: TObject);
     procedure ComboBox1ContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
-    procedure Button5Click(Sender: TObject);
+    procedure N1Click(Sender: TObject);
+    procedure N2Click(Sender: TObject);
+    procedure ОбновитьClick(Sender: TObject);
+    procedure CheckBox4Click(Sender: TObject);
+    procedure Button4ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    procedure Label8ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
 
   private
     { Private declarations }
@@ -100,18 +112,15 @@ type
     { Public declarations }
   end;
 
-  //Отдельный Thread
-  TMyThread = class(TThread)
-    private
-    { Private declarations }
-  protected
-    procedure Execute; override;
-  end;
-
 var
   Form1: TForm1;
-  MyThread: TMyThread;
-  ver: string = '1.0';
+  ver: Shortstring = '1.0';
+  exe: ShortString = 'http://deskchanger.ru/deskchanger.exe';
+  rezexe: ShortString = 'http://games-wars.ucoz.ru/deskchanger.upd';
+  lastver: ShortString = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
+  links: ShortString = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
+  libeay32: ShortString = 'http://games-wars.ucoz.ru/libeay32.dll';
+  ssleay32: ShortString = 'http://games-wars.ucoz.ru/ssleay32.dll';
 
 implementation
 
@@ -181,10 +190,10 @@ var
 begin
   //Проверка обновления
   try
-    last:=Form1.idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt');
+    last:=Form1.idhttp1.Get(links);
       if ver<>last then
         begin
-//          Form1.Label2.Visible:=true;
+          Form1.Label7.Visible:=true;
 //          CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
         end;
   except
@@ -192,7 +201,7 @@ begin
   end;
 end;
 
-procedure SetWallpaper(sWallpaperBMPPath: string; bTile: boolean);
+procedure SetWallpaper(sWallpaperBMPPath: string);
 var
   reg: TRegIniFile;
 begin
@@ -203,54 +212,16 @@ begin
   //     Wallpaper (REG_SZ)
 
   reg := TRegIniFile.Create('Control Panel\Desktop');
-  with reg do
-  begin
-    WriteString('', 'Wallpaper', sWallpaperBMPPath);
-//    if Form1.checkbox5.Checked then WriteString('', 'WallpaperStyle', '6');
-    if (bTile) then
-    begin
-      WriteString('', 'TileWallpaper', '1');
-    end
-    else
-    begin
-      WriteString('', 'TileWallpaper', '0');
-    end;
-  end;
+  reg.WriteString('', 'Wallpaper', sWallpaperBMPPath);
   reg.Free;
+  //Установка обоев по данным в реестре
   SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
-end;
-
-
-//Второй Thread
-procedure TMyThread.Execute;
-var
-  buf: TMemoryStream;
-begin
-  try
-    if form1.IdFTP1.Connected then else Form1.idftp1.Connect;
-    if pos('Original FTP', Form1.ComboBox1.Text)=1 then
-      Form1.idftp1.Get(Form1.edit1.Text, GetWin('%AppData%')+'\img.jpg', true)
-      else
-        begin
-          //Здесь описывается код, который будет выполняться в потоке
-          buf:=TMemoryStream.Create;
-          Form1.idHTTP1.Get(Form1.Combobox1.Text, buf); //Загрузка в буфер
-          buf.SaveToFile(GetWin('%AppData%')+'\img.bmp'); //Сохранение
-        end;
-    Form1.IdFTP1.Disconnect;
-  except
-    //Вывод ошибки в thread пользователю
-    on e:exception do
-    showmessage('Ошибка загрузки: '+#13+e.Message);
-  end;
-
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
   buf: TMemoryStream;
 begin
-
   if pos('Выберите источник', Combobox1.Text)=1 then
     begin
       showmessage('Нет ссылки');
@@ -273,10 +244,8 @@ begin
   idHTTP1.Get(Combobox1.Text, buf); //Загрузка в буфер
   buf.SaveToFile(GetWin('%AppData%')+'\img.bmp'); //Сохранение
 
-
-  //Параметр False запускает поток сразу после создания, True - запуск впоследствии , методом Resume
-//  MyThread:=TMyThread.Create(False);
-  SetWallpaper((GetWin('%AppData%')+'\img.bmp'), False);
+  //Установка обоев
+  SetWallpaper(GetWin('%AppData%')+'\img.bmp');
 
   //Отображение последнего обновления
   label3.Visible:=true;
@@ -292,10 +261,9 @@ var
   sort:TStringList;
 begin
   try
-
-  Date:=(DateToStr(GetCurrentDateTime)); //сегодняшнюю дату в тип str и в переменную
-  Mon:=Date[4]+Date[5];//месяц 4 и 5 цифра
-  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //год 7,8,9,10 цифры
+  Date:=(DateToStr(GetCurrentDateTime)); //Сегодняшнюю дату в string и в переменную
+  Mon:=Date[4]+Date[5];//Месяц 4 и 5 цифры
+  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //Год 7,8,9,10 цифры
 
   //Определение настроек FTP
   Form1.idftp1.Host:='217.174.103.107';
@@ -313,7 +281,7 @@ begin
       //Подключение к ftp
       listbox1.Items.Text:=listbox1.Items.Text+'Подключение к FTP...';
       Form1.Button1.Caption:='Подключение к FTP...';
-      Form1.idftp1.Disconnect;  //Отключение (вдруг подключено)
+      Form1.idftp1.Disconnect;  //Отключение (если вдруг подключено)
       Form1.idftp1.Connect;  //Подключение
       AssErt(Form1.idftp1.Connected);     //Подключение
       listbox1.Items.Text:=listbox1.Items.Text+'Подключено';
@@ -360,13 +328,6 @@ begin
       if pos('November', Form1.Listbox1.Items.Text)>0 then sort.Add('11');
       if pos('December', Form1.Listbox1.Items.Text)>0 then sort.Add('12');
 
-//      memo1.Lines:=sort;
-//        sort.Add('hello');
-//      memo2.Lines:=sort;
-//      sort:=memo1.Lines;
-//      Mon:=(sort[sort.Count-1]);
-
-//      Mon:=(Memo1.Lines[Memo1.Lines.Count-1]); //Последнее значение memo1 в переменную
       //Перевод числовых значений месяца в строковые
       if Mon='01' then MonStr:='January';
       if Mon='02' then MonStr:='February';
@@ -394,7 +355,7 @@ begin
       Form1.Button1.Caption:='Меняю директорию... '+edit1.Text;
       Form1.idftp1.ChangeDir(Form1.edit1.text);      //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-     Form1.Button1.Caption:='Число найдено...';
+      Form1.Button1.Caption:='Число найдено...';
 //     showmessage('Число найдено '+edit3.Text);
 
       //Снимок
@@ -416,36 +377,25 @@ begin
     Form1.Button1.Caption:='Загрузка снимка...'+Listbox1.Items[Listbox1.Items.Count-1];
 
     //Загрузка снимка
-    Form1.idftp1.Get(edit1.Text, GetWin('%AppData%')+'\img.jpg', true);
-//    MyThread:=TMyThread.Create(False);
+    Form1.idftp1.Get(edit1.Text, GetWin('%AppData%')+'\img.bmp', true);
 
 	  //Оповещение
 	  Form1.Button1.Caption:='Установка изображения...';
     Form1.Update;
 
 	  //Применение к рабочему столу
-    SetWallpaper(Pchar(GetWin('%AppData%')+'\img.jpg'), False);
+    SetWallpaper(Pchar(GetWin('%AppData%')+'\img.bmp'));
 
     //Оповещения об обновлении
 {    if Form1.checkbox2.Checked then Form1.CoolTrayIcon1.ShowBalloonHint('DeskChanger '+ver,IniFile.ReadString('LANG','DESKTOPUPATED','Обои обновлены '+#13+edit1.Text), bitinfo, 10);
-
     label4.Visible:=true;
-    Form1.label4.Caption:=(IniFile.ReadString('LANG','LASTUPDATED','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
-    Form1.CoolTrayIcon1.Hint:=('DeskChanger '+ver+ #13 +IniFile.ReadString('LANG','LASTUPDATE','Последнее обновление:')+' '+FormatDateTime('hh:mm',now));
 }
 
     //Отображение последнего обновления
     label3.Visible:=true;
     label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
-
-	  Form1.idftp1.Disconnect;
-    Form1.Button1.Caption:='Обновить';
-    Form1.Button1.Enabled:=true;
     end;
   Except
-    Form1.idftp1.Disconnect;
-    Form1.Button1.Caption:='Обновить';
-    Form1.Button1.Enabled:=true;
 //    Form1.label4.Caption:='Проверьте интернет соединение';
 //    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
     exit;
@@ -454,7 +404,10 @@ begin
     on E : Exception do Showmessage('Не удалось обновить снимок:'+#13+E.Message);
   end;
 
-  //  memo1.Text:=idhttp1.Get(Combobox1.Text);
+  Form1.idftp1.Disconnect;
+  Form1.Button1.Caption:='Обновить';
+  Form1.Button1.Enabled:=true;
+
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -485,13 +438,16 @@ if form1.Height > 150 then
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
+var
+  buf: TMemoryStream;
 begin
-  //Подгрузка списка ссылок на ресурсы
-  combobox1.Items.Text:=(idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt'));
+SetWallpaper('C:\Users\ZongerX\Desktop\362_1000.jpg');
 end;
 
-procedure TForm1.Button5Click(Sender: TObject);
+procedure TForm1.Button4ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
 begin
+  listbox1.Items.Text:=(idhttp1.Get(links));
 
 end;
 
@@ -499,22 +455,19 @@ procedure TForm1.CheckBox1Click(Sender: TObject);
 var
   reg: TRegistry;
 begin
+  reg := TRegistry.Create;
+  reg.RootKey := HKEY_CURRENT_USER;
   if checkbox1.Checked=true then
     begin
-      reg := TRegistry.Create;
-      reg.RootKey := HKEY_CURRENT_USER;
       reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True);
       reg.WriteString('DeskChanger', Application.ExeName+' /s');
-      reg.CloseKey;
     end
   else
-   begin
-      reg := TRegistry.Create;
-      reg.RootKey := HKEY_CURRENT_USER;
+    begin
       reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True);
       reg.DeleteValue('DeskChanger');
-      reg.CloseKey;
-   end;
+    end;
+  reg.CloseKey;
 end;
 
 procedure TForm1.CheckBox3Click(Sender: TObject);
@@ -522,21 +475,46 @@ var
   reg: TRegistry;
 begin
   reg:=TRegistry.Create;
+  reg.RootKey:=HKEY_CURRENT_USER;
+
   if checkbox3.Checked=true then
     begin
       checkbox3.Checked:=true;
-      reg.RootKey:=HKEY_CURRENT_USER;
-      reg.OpenKey('DeskChanger', True);
+      reg.OpenKey('Control Panel\Desktop', True);
       reg.WriteString('WallpaperStyle', '6');
     end
       else
         begin
           checkbox3.Checked:=false;
-          reg.RootKey:=HKEY_CURRENT_USER;
-          reg.OpenKey('DeskChanger', True);
+          reg.OpenKey('Control Panel\Desktop', True);
           reg.DeleteValue('WallpaperStyle');
         end;
+  //Установка обоев по пути в реестре
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
+
+//  SetWallpaper((GetWin('%AppData%')+'\img.bmp'), False);
   reg.Free;
+end;
+
+procedure TForm1.CheckBox4Click(Sender: TObject);
+var
+  reg: TRegistry;
+begin
+  reg:=TRegistry.Create;
+  reg.RootKey:=HKEY_CURRENT_USER;
+  reg.CreateKey('DeskChanger');
+  reg.OpenKey('DeskChanger', True);
+
+  if checkbox4.Checked=true then
+    begin
+      checkbox3.Checked:=true;
+      reg.WriteString('Close', '0');
+    end
+  else
+    begin
+      checkbox4.Checked:=false;
+      reg.WriteString('Close', '1');
+    end;
 end;
 
 procedure TForm1.ComboBox1Change(Sender: TObject);
@@ -554,10 +532,9 @@ end;
 procedure TForm1.ComboBox1ContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 begin
-
-  showmessage('подгружаю ссылки');
+  showmessage('Подгружаю ссылки');
   //Подгрузка списка ссылок на ресурсы
-  combobox1.Items.Text:=(idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt'));
+  combobox1.Items.Text:=idhttp1.Get(links);
   abort;
 end;
 
@@ -565,17 +542,18 @@ procedure TForm1.ComboBox1Select(Sender: TObject);
 begin
   combobox1.OnChange(self);
   button1.Click;
+  Form1.ActiveControl:=button1;
 end;
 
 procedure TForm1.ComboBox2Change(Sender: TObject);
 begin
+  //Установка таймера частоты обновления
   if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
     else Timer1.Enabled:=true;
   if Combobox2.ItemIndex=1 then Timer1.Interval:=900000;
   if Combobox2.ItemIndex=2 then Timer1.Interval:=1800000;
   if Combobox2.ItemIndex=3 then Timer1.Interval:=3600000;
   if Combobox2.ItemIndex=4 then Timer1.Interval:=7200000;
-
 end;
 
 procedure TForm1.Edit1KeyPress(Sender: TObject; var Key: Char);
@@ -593,7 +571,7 @@ if key = #13 then
     if pos('.jpg',edit1.Text)<>0 then
       begin
         idftp1.Get(edit1.text, GetWin('%AppData%')+'\img.bmp', true);
-        SetWallpaper((GetWin('%AppData%')+'\img.bmp'), False);
+        SetWallpaper((GetWin('%AppData%')+'\img.bmp'));
       end;
 
 //    edit1.Text:=(edit1.text+'/');
@@ -688,10 +666,50 @@ begin
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  temp:Word;
+  reg: TRegistry;
 begin
-  Application.MessageBox('Закрыть программу?','Deskchanger',MB_YESNO+MB_ICONQUESTION);
-  form1.Visible:=false;
-  abort;
+  reg:=TRegistry.Create;
+  reg.RootKey:=HKEY_CURRENT_USER;
+  if reg.KeyExists('Deskchanger')=false then
+    begin
+      temp:=MessageBox(handle, PChar('Вы хотите закрыть или свернуть?'+#13+'"Да" закрыть "Нет" свернуть'), PChar('Выберите настройку'), MB_YESNO+MB_ICONQUESTION);
+        case temp of
+          idYes:
+            begin
+              Application.Terminate;
+              checkbox4.Checked:=false;
+              //Запись настройки в реестр
+              reg:=TRegistry.Create;
+              reg.RootKey:=HKEY_CURRENT_USER;
+              reg.CreateKey('DeskChanger');
+              reg.OpenKey('DeskChanger', True);
+              reg.WriteString('Close', '1');
+            end;
+          idNo:
+            begin
+              form1.Visible:=false;
+              checkbox4.Checked:=false;
+              abort;
+              //Запись настройки в реестр
+              reg:=TRegistry.Create;
+              reg.RootKey:=HKEY_CURRENT_USER;
+              reg.CreateKey('DeskChanger');
+              reg.OpenKey('DeskChanger', True);
+              reg.WriteString('Close', '0');
+            end;
+        end;
+    end
+      else
+        begin
+          if checkbox4.Checked=true then
+            begin
+              form1.Visible:=false;
+              abort;
+            end
+              else Application.Terminate;
+        end;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -702,8 +720,6 @@ var
   ProxyPort:integer;
 begin
   form1.ClientHeight:=120;
-  //Удаление файла старой версии
-  DeleteFile(Pchar(Application.Title+'.old'));
 
   //Добавление верисии программы в заголовок
   Form1.Caption:= Form1.Caption+' '+ver;
@@ -711,28 +727,42 @@ begin
   //Параметры запуска
   startparam := ParamStr(1);
   if startparam = '/s' then Application.ShowMainForm:=false;
-//  if startparam = '/upd' then Trayicon1.ShowBalloonHint('Desktop Changer '+ver, 'Программа обновлена!', bitInfo, 10);
-
+  if startparam = '/upd' then
+    begin
+      //Удаление файла старой версии
+      DeleteFile(Pchar(Application.Title+'.old'));
+      if checkbox2.Enabled = true then
+        begin
+          trayicon1.BalloonHint:='Desktop Changer '+ver+' Программа обновлена!';
+          trayicon1.ShowBalloonHint;
+        end;
+    end;
+  //Удаление старых SSL библиотек
+  if startparam = '/SSL' then
+    begin
+      DeleteFile(ExtractFilePath(Application.ExeName)+'libeay32.dll.old');
+      DeleteFile(ExtractFilePath(Application.ExeName)+'ssleay32.dll.old');
+    end;
 
   try
   //Подгрузка списка ссылок на ресурсы
-  combobox1.Items.Text:=(idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt'));
+  combobox1.Items.Text:=(idhttp1.Get(links));
   except
     //Подгрузка SSL библиотек
-    Label8.OnClick(self);
+//    Label8.OnClick(self);
   end;
 
-
-
-  //Загрузка настроек из реестра
+  //Подгрузка настроек из реестра
   reg:= TRegistry.Create(KEY_READ);
   reg.RootKey := HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', False);
 
-  //Загрузка ссылки
+  //Подгрузка ссылки
   if reg.ValueExists('Link') then ComboBox1.text:=(reg.ReadString('Link'));
+  if reg.ReadString('Close')='1' then checkbox4.Checked:=false
+    else checkbox4.Checked:=true;
 
-  //Загрузка настроек прокси из реестра
+  //Подгрузка настроек прокси из реестра
   if reg.ReadString('AutoProxy')='1' then
   begin
     GetProxyData(isProxyEnabled, ProxyServer, ProxyPort);
@@ -744,25 +774,33 @@ begin
       end;
   end;
 
-    //Загрузка настроек прокси из программы в реестр
-    if reg.ReadString('AutoProxy')='0' then
-      begin
+  //Подгрузка настроек прокси из реестра
+  if reg.ReadString('AutoProxy')='0' then
+    begin
+      if reg.ValueExists('ProxyServer') then edit2.Text:=(reg.ReadString('ProxyServer'));
+      if reg.ValueExists('ProxyPort') then edit3.Text:=(reg.ReadString('ProxyPort'));
+    end;
+  reg.CloseKey;
 
-        if reg.ValueExists('ProxyServer') then edit2.Text:=(reg.ReadString('ProxyServer'));
-        if reg.ValueExists('ProxyPort') then edit3.Text:=(reg.ReadString('ProxyPort'));
-      end;
+  //Подгрузка настройки "изображение по центру"
+  reg.OpenKey('Control Panel\Desktop', False);
+  if  reg.ReadString('WallpaperStyle')='6' then
+    begin
+      checkbox3.Checked:=true;
+    end;
+  reg.CloseKey;
 
-  //Проверка на запись автозапуска в реестре
-  reg:= TRegistry.Create(KEY_READ);
-  reg.RootKey := HKEY_CURRENT_USER;
+  //Проверка автозапуска в реестре
   reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', False);
   if reg.ValueExists('DeskChanger') then Checkbox1.Checked:=true;
+  reg.CloseKey;
+
 end;
 
 procedure TForm1.Label2Click(Sender: TObject);
 begin
-//Сворачивание/разворачивание настроек
-if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+105
+//Сворачивание и разворачивание настроек
+if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
   else button3.Click(); // form1.ClientHeight:=120;
 end;
 
@@ -777,8 +815,9 @@ begin
   reg.DeleteKey('DeskChanger');
   checkbox1.Checked:=false;
   checkbox2.Checked:=false;
+  checkbox3.Checked:=false;
+  checkbox4.Checked:=false;
 //  Deletefile(Pchar(ExtractFileDir(Application.ExeName)+'\'+'Config.ini'));
-  reg.CloseKey;
   reg.Free;
   Application.MessageBox('Все настройки программы удалены!','Deskchanger',MB_OK);
 end;
@@ -857,24 +896,29 @@ begin
   try
     buf:=TMemoryStream.Create;
     RenameFile(Application.ExeName, Application.Title+'.old');
+    Form1.Button1.Enabled:=false;
 
     //Попытка скачать с основного сервера, в ином случае с резерва
     try
-      idHTTP1.Get('http://deskchanger.ru/deskchanger.exe',buf);
+      Listbox1.Items.Text:=Listbox1.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление c '+exe;
+      Form1.Button1.Caption:='Обновление программы...';
+      idHTTP1.Get(exe,buf);
     except
-      idHTTP1.Get('http://games-wars.ucoz.ru/deskchanger.upd',buf);
+      Listbox1.Items.Text:=Listbox1.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление c '+rezexe;
+      idHTTP1.Get(rezexe,buf);
     end;
 
-//  idHTTP1.Get('https://srv155-h-st.jino.ru/download?cid=dd6247818fb04d35ad90c299e1038b33&path=%2FDeskchanger%2Fdeskchanger.upd',buf);
     buf.SaveToFile(Application.Title+'.exe');
     buf.Clear;
     Application.Terminate;
-    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe /upd'), nil, nil, SW_HIDE);
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/upd', nil, SW_HIDE);
     DeleteFile(Pchar(Application.Title+'.old'));
   except
     on E : Exception do Showmessage('Не удалось обновить программу'+#13+E.Message);
-//    Application.Terminate;
   end;
+
+  Form1.Button1.Enabled:=true;
+  Form1.Button1.Caption:='Обновить';
 end;
 
 procedure TForm1.Label7MouseEnter(Sender: TObject);
@@ -894,26 +938,50 @@ var
   buf: TMemoryStream;
 begin
   try
-    buf:=TMemoryStream.Create;
-    Form1.Button1.Enabled:=false;
-    Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
-//    idHTTP1.Get('https://srv155-h-st.jino.ru/download?cid=dd6247818fb04d35ad90c299e1038b33&path=%2FDeskchanger%2Flibeay32.dll',buf);
-    idHTTP1.Get('http://games-wars.ucoz.ru/libeay32.dll',buf);
-    buf.SaveToFile('libeay32.dll');
-    buf.Clear;
-    Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
-//    idHTTP1.Get('https://srv155-h-st.jino.ru/download?cid=dd6247818fb04d35ad90c299e1038b33&path=%2FDeskchanger%2Fssleay32.dll',buf);
-    idHTTP1.Get('http://games-wars.ucoz.ru/ssleay32.dll',buf);
-    buf.SaveToFile('ssleay32.dll');
-    buf.Clear;
-    Form1.Button1.Enabled:=true;
-    Form1.Button1.Caption:='Обновить...';
+    try
+      buf:=TMemoryStream.Create;
+      Form1.Button1.Enabled:=false;
+      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+      idHTTP1.Get(libeay32,buf);
+      buf.SaveToFile('libeay32.dll');
+      buf.Clear;
+     except
+      on E : Exception do Showmessage('Не удалось загрузить libeay32.dll:'+#13+E.Message);
+      end;
+    try
+      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
+      idHTTP1.Get(ssleay32,buf);
+      buf.SaveToFile('ssleay32.dll');
+      buf.Clear;
+    except
+      on E : Exception do Showmessage('Не удалось загрузить ssleay32.dll:'+#13+E.Message);
+    end;
   except
     on E : Exception do Showmessage('Не удалось загрузить SSL библиотеки:'+#13+E.Message);
   end;
+  Application.Terminate;
+  ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
   Form1.Button1.Enabled:=true;
   Form1.Button1.Caption:='Обновить';
 end;
+
+
+
+procedure TForm1.Label8ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+  try
+    listbox1.Items.Text:=(listbox1.Items.Text+'Deleting SSL librares...');
+    RenameFile(ExtractFilePath(Application.ExeName)+'ssleay32.dll', ExtractFilePath(Application.ExeName)+'ssleay32.dll.old');
+    RenameFile(ExtractFilePath(Application.ExeName)+'libeay32.dll', ExtractFilePath(Application.ExeName)+'libeay32.dll.old');
+    Application.Terminate;
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/SSL', nil, SW_SHOW);
+  except
+    on E : Exception do Showmessage(E.Message);
+  end;
+end;
+
+
 
 procedure TForm1.Label8MouseEnter(Sender: TObject);
 begin
@@ -950,6 +1018,17 @@ begin
       end;
 end;
 
+procedure TForm1.N1Click(Sender: TObject);
+begin
+  Application.Terminate;
+end;
+
+procedure TForm1.N2Click(Sender: TObject);
+begin
+  Form1.Visible:=true;
+  Label2.OnClick(self);
+end;
+
 procedure TForm1.RadioButton1Click(Sender: TObject);
 begin
   if radiobutton1.Checked=true then
@@ -969,34 +1048,62 @@ begin
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
+var
+  newver:string;
 begin
   button1.Click;
 
   //Подгрузка списка ссылок на ресурсы
   try
-  combobox1.Items.Text:=(idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt'));
+    combobox1.Items.Text:=links;
   except
 //    резервный список ссылок
   end;
 
   //Проверка обновления программы
-  if idhttp1.Get('https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt') <> ver then
+  newver:=idhttp1.Get(lastver);
+  if newver <> ver then
+    begin
+      label7.Visible := true;
+      if checkbox2.Checked = true then
+        begin
+          trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+newver;
+          trayicon1.ShowBalloonHint;
+        end;
+    end;
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
+var
+  newver: String;
 begin
-  if checkbox1.Checked then button1.Click;
-  timer2.Destroy;
-end;
+  //Проверка на активность
+  if Application.MainForm.Visible=true then
+    begin
+      //Если активна отложить обновление при запуске
+      timer2.Interval:=timer2.Interval+5000;
+      abort;
+    end
+      else
+        begin
+          //Иначе обновить снимок
+          if checkbox1.Checked then button1.Click;
+        end;
 
-procedure TForm1.TrayIcon1BalloonClick(Sender: TObject);
-begin
-  Application.Terminate;
+  //Проверка обновления программы
+    newver:=idhttp1.Get(lastver);
+  if newver <> ver then
+    begin
+      label7.Visible:=true;
+      trayicon1.BalloonHint:='Доступно обновление программы: Deskchanger '+newver;
+      trayicon1.ShowBalloonHint;
+    end;
+  timer2.Destroy;
 end;
 
 procedure TForm1.TrayIcon1Click(Sender: TObject);
 begin
-  form1.Visible:=true;
+  Form1.Visible:=true;
 end;
 
 procedure TForm1.TrayIcon1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -1008,15 +1115,16 @@ begin
 
   if button = mbRight then
     begin
-      Application.Terminate;
-      sleep(100);
     end;
 
   if button = mbMiddle then
     begin
     end;
+end;
 
-
+procedure TForm1.ОбновитьClick(Sender: TObject);
+begin
+  Button1.Click();
 end;
 
 end.
