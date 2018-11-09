@@ -349,7 +349,7 @@
   end
   object ListBox2: TListBox
     Left = 342
-    Top = 5
+    Top = 2
     Width = 360
     Height = 490
     ItemHeight = 13

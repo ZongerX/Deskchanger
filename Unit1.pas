@@ -143,7 +143,6 @@ begin
   Result := SystemTimeToDateTime(SystemTime);
 end;
 
-
 function GetWin(Comand: string): string;
 var
   buff: array [0 .. $FF] of char;
@@ -152,6 +151,61 @@ begin
   Result := buff;
 end;
 
+function DownSSL(): integer;
+var
+  http: Tidhttp;
+  buf: TMemoryStream;
+  error: integer;
+begin
+//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
+  try
+    buf:=TMemoryStream.Create;
+    try
+//      Form1.Button1.Enabled:=false;
+//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
+//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+      HTTP.Get(libeay32,buf);
+      buf.SaveToFile('libeay32.dll');
+      buf.Clear;
+    except
+      on E : Exception do Error:=1;
+    end;
+    try
+//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки ssleay32.dll... ';
+//      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
+      HTTP.Get(ssleay32,buf);
+      buf.SaveToFile('ssleay32.dll');
+      buf.Clear;
+    except
+      on E : Exception do Error:=2;
+    end;
+  Finally
+    //Подгрузка списка ссылок на ресурсы
+    if error=0 then
+      begin
+//        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершено без ошибок #'+IntToStr(error);
+        Application.Terminate;
+        ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
+      end;
+  end;
+  buf.Clear;
+
+// Коды ошибок
+// #0 - ошибок нет;
+// #1 - ошибка загрузки libeay32.dll
+// #2 - ошибка загрузки ssleay32.dll
+// #3 - ошибка загрузки обоих библиотек
+
+//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершилось с кодом ошибки: #'+IntToStr(error);
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#3 - ошибка загрузки обоих библиотек';
+
+//  Form1.Button1.Enabled:=true;
+//  Form1.Button1.Caption:='Обновить';
+  Result:=Error;
+end;
 
 procedure GetProxyData(var ProxyEnabled: boolean; var ProxyServer: string; var ProxyPort: integer);
 var
@@ -193,20 +247,15 @@ begin
   end;
 end;
 
-procedure CheckUpdate();
+procedure CheckUpdate;
 var
   last:string;
 begin
   //Проверка обновления
   try
     last:=Form1.idhttp1.Get(links);
-      if ver<>last then
-        begin
-          Form1.Label7.Visible:=true;
-//          CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Доступна новая версия '+last, bitInfo, 10);
-        end;
+    if ver<>last then Form1.Label7.Visible:=true;
   except
-//    CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка проверки обновления программы', bitError, 10);
   end;
 end;
 
@@ -1115,35 +1164,44 @@ begin
   Label7.Font.Style:=label7.Font.Style-[fsunderline];
 end;
 
+
+
 procedure TForm1.Label8Click(Sender: TObject);
 var
+  http: Tidhttp;
   buf: TMemoryStream;
-  error: string;
+  error: integer;
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
   try
     buf:=TMemoryStream.Create;
     try
-      Form1.Button1.Enabled:=false;
-      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
-      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
-      idHTTP1.Get(libeay32,buf);
+//      Form1.Button1.Enabled:=false;
+//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
+//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+      HTTP.Get(libeay32,buf);
       buf.SaveToFile('libeay32.dll');
       buf.Clear;
     except
-      on E : Exception do error:=('#1'+#13+E.Message);
+      on E : Exception do error:=1;
     end;
     try
-      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки ssleay32.dll... ';
-      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
-      idHTTP1.Get(ssleay32,buf);
+//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки ssleay32.dll... ';
+//      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
+      HTTP.Get(ssleay32,buf);
       buf.SaveToFile('ssleay32.dll');
       buf.Clear;
     except
-      on E : Exception do error:=('#2'+#13+E.Message);
+      on E : Exception do error:=2;
     end;
-  except
-    on E : Exception do error:=('#3'+#13+E.Message);
+  Finally
+    //Подгрузка списка ссылок на ресурсы
+    if error=0 then
+      begin
+//        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершено без ошибок #'+IntToStr(error);
+        Application.Terminate;
+        ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
+      end;
   end;
 
 // Коды ошибок
@@ -1151,12 +1209,15 @@ begin
 // #1 - ошибка загрузки libeay32.dll
 // #2 - ошибка загрузки ssleay32.dll
 // #3 - ошибка загрузки обоих библиотек
-Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление завершилось с кодом ошибки: '+error;
 
-  Application.Terminate;
-  ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
-  Form1.Button1.Enabled:=true;
-  Form1.Button1.Caption:='Обновить';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершилось с кодом ошибки: #'+IntToStr(error);
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
+//  Listbox2.Items.Text:=Listbox2.Items.Text+'#3 - ошибка загрузки обоих библиотек';
+
+//  Form1.Button1.Enabled:=true;
+//  Form1.Button1.Caption:='Обновить';
 end;
 
 
@@ -1245,6 +1306,7 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 var
   newver:string;
 begin
+  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обработка Timer1';
   //Подгрузка списка ссылок на ресурсы
   try
     combobox1.Items.Text:=(idhttp1.Get(links));
@@ -1275,22 +1337,45 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   newver: String;
+  ssl:string;
 begin
-
+  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обработка Timer2';
   try
     //Подгрузка списка ссылок на ресурсы
     combobox1.Items.Text:=(idhttp1.Get(links));
   except
     //Подгрузка SSL библиотек
-    Label8.OnClick(self);
+    Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
+    if DownSSL>0 then
+      begin
+        ssl:=IntToStr(DownSSL);
+        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Ошибка загрузки SSL библиотек #'+ssl;
+        Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
+        Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
+        Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
+        Listbox2.Items.Text:=Listbox2.Items.Text+'#3 - ошибка загрузки обоих библиотек';
+//        showmessage('Не удалось загрузить SSL библиотеки');
+//        Timer2.Enabled:=false;
+      end;
+//    Label8.OnClick(self);
   end;
+
+  //Проверка обновления программы
+  newver:=idhttp1.Get(lastver);
+  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Новая версия программы: '+newver;
+  if newver <> ver then
+    begin
+      label7.Visible:=true;
+      trayicon1.BalloonHint:='Доступно обновление программы: Deskchanger '+newver;
+      if Checkbox2.Checked then trayicon1.ShowBalloonHint;
+    end;
 
   //Проверка на активность
   if Application.MainForm.Visible=true then
     begin
       //Если активна отложить обновление при запуске
       timer2.Interval:=timer2.Interval+5000;
-      abort;
+      exit;
     end
       else
         begin
@@ -1298,14 +1383,6 @@ begin
           if checkbox1.Checked then button1.Click;
         end;
 
-  //Проверка обновления программы
-    newver:=idhttp1.Get(lastver);
-  if newver <> ver then
-    begin
-      label7.Visible:=true;
-      trayicon1.BalloonHint:='Доступно обновление программы: Deskchanger '+newver;
-      trayicon1.ShowBalloonHint;
-    end;
   timer2.Destroy;
 end;
 
