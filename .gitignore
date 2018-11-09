@@ -6,3 +6,5 @@
 *.~
 *.old
 *.upd
+deskchanger.identcache
+deskchanger.stat
