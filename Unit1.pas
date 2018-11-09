@@ -120,8 +120,9 @@ type
 var
   Form1: TForm1;
   ver: string = '1.0';
-  exe: String = 'http://deskchanger.ru/deskchanger.exe';
-  rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
+  exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
+  rezexe: String = 'https://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
+//  rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
   lastver: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
   links: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
   libeay32: String = 'http://games-wars.ucoz.ru/libeay32.dll';
@@ -1137,17 +1138,17 @@ begin
       idHTTP1.Get(rezexe,buf);
     end;
 
-    Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Программа обновлена, перезапуск...';
+    Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Программа загружена, перезапуск...';
     buf.SaveToFile(Application.Title+'.exe');
     buf.Clear;
     Application.Terminate;
-    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/upd', nil, SW_HIDE);
-    DeleteFile(Pchar(Application.Title+'.old'));
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/upd', nil, SW_SHOW);
+    DeleteFile(Pchar(Application.Title+'.exe'));
   except
     on E : Exception do Error:=('Не удалось обновить программу'+#13+E.Message);
   end;
 
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление завершилось с кодом ошибки: '+error;
+  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление завершилось с кодом ошибки: '+#13+error;
   Form1.Button1.Enabled:=true;
   Form1.Button1.Caption:='Обновить';
 end;
