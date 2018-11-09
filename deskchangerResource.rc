@@ -1,0 +1,2 @@
+Resource_1 RCDATA "Win32\\Release\\libeay32.dll"
+Resource_2 RCDATA "Win32\\Release\\ssleay32.dll"
