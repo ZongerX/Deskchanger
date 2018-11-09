@@ -2,4 +2,7 @@
 *lib
 *__history
 *__recovery
+*__Debug
 *.~
+*.old
+*.upd
