@@ -1,0 +1,26 @@
+Original FTP
+Original FTP HD
+Electro-L
+Electro-L HD
+Himawari
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039-all.jpg
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_IR039Color-all.jpg
+https://sohowww.nascom.nasa.gov/data/realtime/eit_284/1024/latest.jpg
+https://sohowww.nascom.nasa.gov/data/realtime/eit_195/1024/latest.jpg
+https://sohowww.nascom.nasa.gov/data/realtime/eit_171/1024/latest.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0171.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0304.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0211.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0131.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0335.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0094.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSGIODC_RGBNatColour_NorthernAsia.jpg
+http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSGIODC_VIS006Color_NorthernAsia.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0171.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0304.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0211.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0131.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0335.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0094.jpg
+https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIIC.jpg
