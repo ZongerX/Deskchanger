@@ -121,8 +121,8 @@ var
   Form1: TForm1;
   ver: string = '1.0';
   exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
-  rezexe: String = 'https://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
-//  rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
+//  rezexe: String = 'https://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
+  rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
   lastver: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
   links: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
   libeay32: String = 'http://games-wars.ucoz.ru/libeay32.dll';
@@ -544,12 +544,9 @@ var
 begin
   Date:=Himawari;
 //  showmessage(Himawari);
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка снимка с Himawari: '+#13+Date;
+  Form1.Hide;
+{  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка снимка с Himawari: '+#13+Date;
   Today:=CurrentDateTime(true);
-
-  //Время в переменные
-  DateTimeToString(Hour,'hh',today);
-  DateTimeToString(Min,'n',today);
 
   buf:=TMemoryStream.Create;
   Combobox1.Text:=(Date);
@@ -557,44 +554,7 @@ begin
   buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
   SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
 
-
-{  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка Himawari: '+combobox1.Text;
-  today := Now;
-//  ShowMessage('День = '+DateToStr(today));
-//  ShowMessage('Время = '+TimeToStr(today));
-
-  //Получение даты
-  Date:=(DateToStr(GetCurrentDateTime)); //Сегодняшнюю дату в string и в переменную
-  Mon:=Date[4]+Date[5];//Месяц 4 и 5 цифры
-  Year:=Date[7]+Date[8]+Date[9]+Date[10]; //Год 7,8,9,10 цифры
-  Day:=Date[1]+Date[2];
-
-  //Получение времени
-  Hour:=TimeToStr(today)[1]+TimeToStr(today)[2];
-  Hour:=IntToStr(StrToInt(Hour)-3); //MSK > UTC
-  Min:=TimeToStr(today)[4]+TimeToStr(today)[5];
-  showmessage(Min);
-//  showmessage(min[1]);
-//  showmessage(IntToStr(StrToInt(min[1])-1));
-//  showmessage(IntToStr(StrToInt(min[1])-1)+'0');
-
-  if StrToInt(min[2])>5 then Min:=TimeToStr(today)[4]+'0'
-    else Min:=IntToStr(StrToInt(min[1])-1)+'0';
-
-  showmessage('Finally: '+Min);
-  showmessage('Finally: '+Hour+Min);
-
-  try
-    buf:=TMemoryStream.Create;
-    Combobox1.Text:=('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png');
-    idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png', buf); //Загрузка в буфер
-    buf.SaveToFile(GetWin('%AppData%')+'\img.bmp'); //Сохранение
-  except
-    on E : Exception do Showmessage('Не удалось обновить снимок Himawari:'+#13+E.Message);
-  end;
-  //Установка обоев
-  SetWallpaper(GetWin('%AppData%')+'\img.bmp');
-}
+  }
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -903,6 +863,8 @@ begin
     begin
       //Удаление файла старой версии
       DeleteFile(Pchar(Application.Title+'.old'));
+      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Программа обновлена';
+      Form1.Hide;
       if checkbox2.Enabled = true then
         begin
           trayicon1.BalloonHint:=('Desktop Changer '+ver+' Программа обновлена!');
@@ -1371,7 +1333,8 @@ begin
       if Checkbox2.Checked then trayicon1.ShowBalloonHint;
     end;
 
-  //Проверка на активность
+    button1.Click;
+{  //Проверка на активность
   if Application.MainForm.Visible=true then
     begin
       //Если активна отложить обновление при запуске
@@ -1383,13 +1346,13 @@ begin
           //Иначе обновить снимок
           if checkbox1.Checked then button1.Click;
         end;
-
+}
   timer2.Destroy;
 end;
 
 procedure TForm1.TrayIcon1Click(Sender: TObject);
 begin
-  Form1.Visible:=true;
+  Form1.Show;
 end;
 
 procedure TForm1.TrayIcon1MouseDown(Sender: TObject; Button: TMouseButton;
