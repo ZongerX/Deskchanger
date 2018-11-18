@@ -121,7 +121,6 @@ var
   Form1: TForm1;
   ver: string = '1.0';
   exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
-//  rezexe: String = 'https://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
   rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
   lastver: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
   links: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
@@ -338,10 +337,20 @@ begin
 
   if (ComboBox1.Text='Himawari') or (ComboBox1.Text='Himawari HD') then
     begin
+      try
       Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка с Himawari: '+#13+Himawari;
+      Button1.Caption:='Загрузка снимка Himawari..';
+      Button1.Enabled:=false;
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
       buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
       SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
+      label3.Visible:=true;
+      label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
+
+      Button1.Caption:='Обновить';
+      Button1.Enabled:=true;
+      except
+      end;
       exit;
     end;
 
