@@ -339,8 +339,8 @@ begin
     begin
       try
       Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка с Himawari: '+#13+Himawari;
-      Button1.Caption:='Загрузка снимка Himawari..';
       Button1.Enabled:=false;
+      Button1.Caption:='Загрузка снимка Himawari..';
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
       buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
       SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
