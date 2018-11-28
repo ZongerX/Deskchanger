@@ -350,6 +350,9 @@ begin
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
       except
+        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Ошибка обновления с Himawari ';
+        Button1.Caption:='Обновить';
+        Button1.Enabled:=true;
       end;
       exit;
     end;
@@ -549,7 +552,7 @@ var
   today : TDateTime;
   buf: TMemoryStream;
   Date:String;
-  Min,Hour,Day,Mon,MonStr,Year:String;
+//  Min,Hour,Day,Mon,MonStr,Year:String;
 begin
   Date:=Himawari;
 //  showmessage(Himawari);
@@ -1332,6 +1335,7 @@ begin
 //    Label8.OnClick(self);
   end;
 
+  try
   //Проверка обновления программы
   newver:=idhttp1.Get(lastver);
   Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Новая версия программы: '+newver;
@@ -1341,6 +1345,8 @@ begin
       trayicon1.BalloonHint:='Доступно обновление программы: Deskchanger '+newver;
       if Checkbox2.Checked then trayicon1.ShowBalloonHint;
     end;
+  except
+  end;
 
     button1.Click;
 {  //Проверка на активность
