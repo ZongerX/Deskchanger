@@ -329,7 +329,7 @@
     OnClick = CheckBox3Click
   end
   object Button4: TButton
-    Left = 273
+    Left = 274
     Top = 32
     Width = 62
     Height = 25
@@ -444,7 +444,7 @@
     Request.BasicAuthentication = False
     Request.UserAgent = 
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KH' +
-      'TML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
+      'TML, like Gecko) Chrome/70.0.3538.110 Safari/537.36'
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]

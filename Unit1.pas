@@ -151,7 +151,7 @@ begin
   Result := buff;
 end;
 
-function DownSSL(): integer;
+function DownSSL: integer;
 var
   http: Tidhttp;
   buf: TMemoryStream;
@@ -205,6 +205,11 @@ begin
 //  Form1.Button1.Enabled:=true;
 //  Form1.Button1.Caption:='Обновить';
   Result:=Error;
+end;
+
+function Log(Data: string):string;
+begin
+ Form1.Listbox2.Items.Text:=Form1.Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': '+Data+' ';
 end;
 
 procedure GetProxyData(var ProxyEnabled: boolean; var ProxyServer: string; var ProxyPort: integer);
@@ -279,7 +284,7 @@ end;
 Function Himawari : string;
 var
   today : TDateTime;
-  Min,Hour,Day,Mon,Year,Date:String;
+  Min,Hour,Day,Mon,Year:String;
 begin
   //Получение даты и времени по UTC = (true)
   Today:=CurrentDateTime(true);
@@ -338,7 +343,7 @@ begin
   if (ComboBox1.Text='Himawari') or (ComboBox1.Text='Himawari HD') then
     begin
       try
-      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка с Himawari: '+#13+Himawari;
+      Log('Обновление cнимка с Himawari: '+#13+Himawari);
       Button1.Enabled:=false;
       Button1.Caption:='Загрузка снимка Himawari..';
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
@@ -350,7 +355,7 @@ begin
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
       except
-        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Ошибка обновления с Himawari ';
+        Log('Ошибка обновления с Himawari ');
         Button1.Caption:='Обновить';
         Button1.Enabled:=true;
       end;
@@ -367,7 +372,7 @@ begin
   if pos('http://', Combobox1.Text) or pos('https://', Combobox1.Text)=0 then
     ComboBox1.Text:=('http://'+Combobox1.Text);
 
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка button1: '+#13+combobox1.Text;
+  Log('Обновление cнимка button1: '+#13+combobox1.Text);
   Button1.Enabled:=false;
   Button1.Caption:='Загрузка изображения...';
   //Загрузка и сохранение изображения
@@ -549,24 +554,21 @@ end;
 
 procedure TForm1.Button4Click(Sender: TObject);
 var
-  today : TDateTime;
-  buf: TMemoryStream;
-  Date:String;
-//  Min,Hour,Day,Mon,MonStr,Year:String;
+buf: TMemoryStream;
+http: Tidhttp;
 begin
-  Date:=Himawari;
-//  showmessage(Himawari);
-  Form1.Hide;
-{  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка снимка с Himawari: '+#13+Date;
-  Today:=CurrentDateTime(true);
-
-  buf:=TMemoryStream.Create;
-  Combobox1.Text:=(Date);
-  idHTTP1.Get(Date, buf); //Загрузка в буфер
-  buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
-  SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
-
-  }
+    buf:=TMemoryStream.Create;
+    Log(edit1.Text+' downloading');
+    try
+//      Form1.Button1.Enabled:=false;
+//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
+//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+      HTTP.Get(edit1.Text,buf);
+      buf.SaveToFile('libeay32.dll');
+      buf.Clear;
+    except
+//      on E : Exception do showmessage(E.Message);
+    end;
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -1281,11 +1283,13 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 var
   newver:string;
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обработка Timer1';
+  Log('Обработка Timer1');
   //Подгрузка списка ссылок на ресурсы
   try
+    Log('Подгрузка списка ссылок на ресурсы');
     combobox1.Items.Text:=(idhttp1.Get(links));
   except
+    Log('Ошибка подгрузки ссылок на ресурсы');
 //    резервный список ссылок
   end;
 
@@ -1296,17 +1300,23 @@ begin
       label7.OnClick(self);
     end;
 }
-  //Проверка обновления программы
-  newver:=idhttp1.Get(lastver);
-  if newver <> ver then
-    begin
-      label7.Visible := true;
-      if checkbox2.Checked = true then
-        begin
-          trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+newver;
-          trayicon1.ShowBalloonHint;
-        end;
-    end;
+  try
+    Log('Проверка обновления программы');
+    //Проверка обновления программы
+    newver:=idhttp1.Get(lastver);
+    if newver <> ver then
+      begin
+        label7.Visible := true;
+        if checkbox2.Checked = true then
+          begin
+            Log('Доступно обновления программы');
+            trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+newver;
+            trayicon1.ShowBalloonHint;
+          end;
+      end;
+  except
+    Log('Ошибка проверки обновления программы. Проверьте интернет, либо SSL соединение');
+  end;
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
@@ -1314,31 +1324,39 @@ var
   newver: String;
   ssl:string;
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обработка Timer2';
+  Log('Обработка Timer2');
   try
     //Подгрузка списка ссылок на ресурсы
     combobox1.Items.Text:=(idhttp1.Get(links));
   except
     //Подгрузка SSL библиотек
-    Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
+    Log('Загрузка SSL библиотек... ');
     if DownSSL>0 then
       begin
         ssl:=IntToStr(DownSSL);
-        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Ошибка загрузки SSL библиотек #'+ssl;
-        Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
-        Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
-        Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
-        Listbox2.Items.Text:=Listbox2.Items.Text+'#3 - ошибка загрузки обоих библиотек';
+        Log('Ошибка загрузки SSL библиотек #'+ssl);
+        Log('#0 - ошибок нет');
+        Log('#1 - ошибка загрузки libeay32.dll');
+        Log('#2 - ошибка загрузки ssleay32.dll');
+        Log('#3 - ошибка загрузки обоих библиотек');
 //        showmessage('Не удалось загрузить SSL библиотеки');
 //        Timer2.Enabled:=false;
       end;
 //    Label8.OnClick(self);
   end;
 
+  if FileExists('ssleay32')
+  then Log('ssleay32 существует')
+  else Log('ssleay32 не существует');
+
+if FileExists('libeay32')
+  then Log('libeay32 существует')
+  else Log('libeay32 не существует');
+
   try
   //Проверка обновления программы
   newver:=idhttp1.Get(lastver);
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Новая версия программы: '+newver;
+  Log('Новая версия программы: '+newver);
   if newver <> ver then
     begin
       label7.Visible:=true;
