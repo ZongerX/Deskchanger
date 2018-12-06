@@ -167,6 +167,10 @@
     OnCloseUp = ComboBox1CloseUp
     OnContextPopup = ComboBox1ContextPopup
     OnSelect = ComboBox1Select
+    Items.Strings = (
+      'Himawari'
+      'Electro-L'
+      'Electro-L HD')
   end
   object Button1: TButton
     Left = 9
@@ -187,7 +191,7 @@
     OnClick = Button2Click
   end
   object ListBox1: TListBox
-    Left = 9
+    Left = 10
     Top = 315
     Width = 326
     Height = 180

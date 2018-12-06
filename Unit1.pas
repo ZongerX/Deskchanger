@@ -157,13 +157,11 @@ var
   buf: TMemoryStream;
   error: integer;
 begin
-//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
   try
     buf:=TMemoryStream.Create;
+    Http := TIdHTTP.Create(nil);
     try
-//      Form1.Button1.Enabled:=false;
-//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
-//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+      //Скачивание библиотеки libeay32.dll
       HTTP.Get(libeay32,buf);
       buf.SaveToFile('libeay32.dll');
       buf.Clear;
@@ -171,8 +169,7 @@ begin
       on E : Exception do Error:=1;
     end;
     try
-//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки ssleay32.dll... ';
-//      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
+      //Скачивание библиотеки ssleay32.dll
       HTTP.Get(ssleay32,buf);
       buf.SaveToFile('ssleay32.dll');
       buf.Clear;
@@ -183,7 +180,7 @@ begin
     //Подгрузка списка ссылок на ресурсы
     if error=0 then
       begin
-//        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершено без ошибок #'+IntToStr(error);
+//        Log('Скачивание завершено #'+IntToStr(error));
         Application.Terminate;
         ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
       end;
@@ -196,14 +193,12 @@ begin
 // #2 - ошибка загрузки ssleay32.dll
 // #3 - ошибка загрузки обоих библиотек
 
-//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершилось с кодом ошибки: #'+IntToStr(error);
-//  Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
-//  Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
-//  Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
-//  Listbox2.Items.Text:=Listbox2.Items.Text+'#3 - ошибка загрузки обоих библиотек';
+//  Log(': Скачивание завершилось с кодом ошибки: #'+IntToStr(error));
+//  Log('#0 - ошибок нет');
+//  Log('#1 - ошибка загрузки libeay32.dll');
+//  Log('#2 - ошибка загрузки ssleay32.dll');
+//  Log('#3 - ошибка загрузки обоих библиотек');
 
-//  Form1.Button1.Enabled:=true;
-//  Form1.Button1.Caption:='Обновить';
   Result:=Error;
 end;
 
@@ -345,9 +340,11 @@ begin
       try
       Log('Обновление cнимка с Himawari: '+#13+Himawari);
       Button1.Enabled:=false;
-      Button1.Caption:='Загрузка снимка Himawari..';
+      Button1.Caption:='Загрузка снимка Himawari...';
+      Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
       buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
+      Log('Установка снимка Himawari');
       SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
@@ -407,26 +404,26 @@ begin
   Form1.idftp1.Username:='electro';
   Form1.idftp1.Password:='electro';
 
-  //Начало поиска, оповещение пользователя
-  Form1.Button1.Enabled:=false;
-  Form1.Button1.Caption:='Поиск снимка...';
-  Form1.Update;
-
   Try
     begin
+      Form1.Button1.Enabled:=false;
       //Подключение к ftp
       listbox1.Items.Text:=listbox1.Items.Text+'Подключение к FTP...';
+      Log('Подключение к FTP...');
       Form1.Button1.Caption:='Подключение к FTP...';
       Form1.idftp1.Disconnect;  //Отключение (если вдруг подключено)
       Form1.idftp1.Connect;  //Подключение
       AssErt(Form1.idftp1.Connected);     //Подключение
-      listbox1.Items.Text:=listbox1.Items.Text+'Подключено';
+      listbox1.Items.Text:=listbox1.Items.Text+'Подключено '+idftp1.Host;
+      Log('Подключено '+idftp1.Host);
       listbox1.Items.Text:=listbox1.Items.Text+'Вывод списка папок...';
+      Log('Вывод списка папок...');
       listbox1.Items.Clear;
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
 
       //Переход в корень FTP
       listbox1.Items.Text:=listbox1.Items.Text+'Переход в корень FTP...';
+      Log('Переход в корень FTP...');
       Button1.Caption:='Переход в корень FTP...';
       Edit1.Text:='/ELECTRO_L_2/';
       Form1.idftp1.ChangeDir(Form1.edit1.text);      //Смена директории FTP
@@ -434,14 +431,16 @@ begin
       //Год
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Edit1.Text:=edit1.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
-      Button1.Caption:='Меняю директорию... '+edit1.Text;
+      Button1.Caption:='Смена директории... '+edit1.Text;
+      Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);     //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false);   //Вывод списка папок
 //      showmessage('год выбрали '+edit3.text);
 
       //Месяц
       Form1.idFTP1.List(ListBox1.Items,'',false);
-      Button1.Caption:='Меняю директорию... '+edit1.Text;
+      Button1.Caption:='Смена директории... '+edit1.Text;
+      Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Год найден...';
@@ -479,7 +478,8 @@ begin
       if Mon='12' then MonStr:='December';
 
       Edit1.Text:=(edit1.Text+MonStr+'/'); //Добавляем буквенный месяц из переменной
-      Form1.Button1.Caption:='Меняю директорию... '+edit1.Text;
+      Form1.Button1.Caption:='Смена директории... '+edit1.Text;
+      Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Месяц найден...';
@@ -488,21 +488,25 @@ begin
       //Число
       Form1.edit1.Text:=Form1.edit1.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      Form1.Button1.Caption:='Меняю директорию... '+edit1.Text;
+      Form1.Button1.Caption:='Смена директории... '+edit1.Text;
+      Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);      //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Число найдено...';
+      Log('Число найдено...');
 //     showmessage('Число найдено '+edit3.Text);
 
       //Снимок
       Form1.edit1.Text:=Form1.edit1.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
-      Form1.Button1.Caption:='Меняю директорию... '+edit1.Text;
+      Form1.Button1.Caption:='Смена директории... '+edit1.Text;
+      Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
 
 
-      Form1.Button1.Caption:='Снимок найден...';
+      Form1.Button1.Caption:='Снимок найден';
+      Log('Снимок найден');
 
       //Добавление ссылки на снимок в edit1
       if ComboBox1.Text='Electro-L HD' then
@@ -511,12 +515,14 @@ begin
             Edit1.Text:=Edit1.Text+Listbox1.Items[Listbox1.Items.Count-2];
 
     Form1.Button1.Caption:='Загрузка снимка...'+Listbox1.Items[Listbox1.Items.Count-1];
+    Log('Загрузка снимка... '+Listbox1.Items[Listbox1.Items.Count-1]);
 
     //Загрузка снимка
     Form1.idftp1.Get(edit1.Text, GetWin('%AppData%')+'\img.bmp', true);
 
 	  //Оповещение
 	  Form1.Button1.Caption:='Установка изображения...';
+    Log('Установка изображения...');
     Form1.Update;
 
 	  //Применение к рабочему столу
@@ -558,15 +564,23 @@ buf: TMemoryStream;
 http: Tidhttp;
 begin
     buf:=TMemoryStream.Create;
-    Log(edit1.Text+' downloading');
+    Http := TIdHTTP.Create(nil);
+    Log(edit1.Text+' Downloading...');
     try
 //      Form1.Button1.Enabled:=false;
 //      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
 //      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
+
       HTTP.Get(edit1.Text,buf);
-      buf.SaveToFile('libeay32.dll');
+      buf.SaveToFile('test.png');
       buf.Clear;
-    except
+      Listbox1.Items.text:= Listbox1.Items.text+exe+'1';
+//      Listbox1.Items.text:= Listbox1.Items.text+rezexe;
+//      Listbox1.Items.text:= Listbox1.Items.text+lastver;
+//      Listbox1.Items.text:= Listbox1.Items.text+links;
+//      Listbox1.Items.text:= Listbox1.Items.text+libeay32;
+//      Listbox1.Items.text:= Listbox1.Items.text+ssleay32+'2';
+      except
 //      on E : Exception do showmessage(E.Message);
     end;
 end;
@@ -672,6 +686,7 @@ end;
 procedure TForm1.ComboBox1Select(Sender: TObject);
 begin
   combobox1.OnChange(self);
+  combobox1.Update;
   button1.Click;
   Form1.ActiveControl:=button1;
 end;
@@ -794,7 +809,7 @@ begin
   reg.CreateKey('DeskChanger');
   reg.OpenKey('DeskChanger', True);
 
-  if (edit1.Text='') or (edit1.Text='Port') then
+  if (edit3.Text='') or (edit3.Text='Port') then
     begin
       idhttp1.ProxyParams.ProxyPort:=0;
       idftp1.ProxySettings.Port:=0;
@@ -802,9 +817,9 @@ begin
     end
       else
         begin
-          idhttp1.ProxyParams.ProxyPort:=(StrToInt(Edit1.Text));
-          idftp1.ProxySettings.Port:=(StrToInt(Edit1.Text));
-          reg.WriteString('Proxy_port', Edit1.Text);
+          idhttp1.ProxyParams.ProxyPort:=(StrToInt(Edit3.Text));
+          idftp1.ProxySettings.Port:=(StrToInt(Edit3.Text));
+          reg.WriteString('Proxy_port', Edit3.Text);
         end;
 
   reg.Free;
@@ -820,31 +835,31 @@ begin
   if reg.KeyExists('Deskchanger')=false then
     begin
       temp:=MessageBox(handle, PChar('Вы хотите закрыть или свернуть?'+#13+'"Да" закрыть "Нет" свернуть'), PChar('Выберите настройку'), MB_YESNO+MB_ICONQUESTION);
-        case temp of
-          idYes:
-            begin
-              Application.Terminate;
-              checkbox4.Checked:=false;
-              //Запись настройки в реестр
-              reg:=TRegistry.Create;
-              reg.RootKey:=HKEY_CURRENT_USER;
-              reg.CreateKey('DeskChanger');
-              reg.OpenKey('DeskChanger', True);
-              reg.WriteString('Close', '1');
-            end;
-          idNo:
-            begin
-              form1.Visible:=false;
-              checkbox4.Checked:=false;
-              abort;
-              //Запись настройки в реестр
-              reg:=TRegistry.Create;
-              reg.RootKey:=HKEY_CURRENT_USER;
-              reg.CreateKey('DeskChanger');
-              reg.OpenKey('DeskChanger', True);
-              reg.WriteString('Close', '0');
-            end;
-        end;
+      case temp of
+        idYes:
+          begin
+            Application.Terminate;
+            checkbox4.Checked:=false;
+            //Запись настройки в реестр
+            reg:=TRegistry.Create;
+            reg.RootKey:=HKEY_CURRENT_USER;
+            reg.CreateKey('DeskChanger');
+            reg.OpenKey('DeskChanger', True);
+            reg.WriteString('Close', '1');
+          end;
+        idNo:
+          begin
+            form1.Visible:=false;
+            checkbox4.Checked:=false;
+            abort;
+            //Запись настройки в реестр
+            reg:=TRegistry.Create;
+            reg.RootKey:=HKEY_CURRENT_USER;
+            reg.CreateKey('DeskChanger');
+            reg.OpenKey('DeskChanger', True);
+            reg.WriteString('Close', '0');
+          end;
+      end;
     end
       else
         begin
@@ -1035,6 +1050,7 @@ begin
         begin
           Form1.BorderStyle:=TFormBorderStyle(1);
           form1.Width:= 350;
+          Label2.OnClick(self);
         end;
 end;
 
@@ -1075,7 +1091,7 @@ end;
 
 procedure TForm1.Label6Click(Sender: TObject);
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Отктрыто "FTP НЦ ОМЗ"';
+  Log('Открыто "FTP НЦ ОМЗ"');
   //Ссылка на FTP "НЦ ОМЗ"
   ShellExecute(0, 'open', 'ftp://electro:electro@ftp.ntsomz.ru/', nil, nil, SW_SHOW);
 end;
@@ -1097,7 +1113,7 @@ var
   buf: TMemoryStream;
   error: string;
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Начало обновления '+ver+' на '+lastver;
+  Log('Начало обновления '+ver+' на '+lastver);
   //Обновление программы
   try
     buf:=TMemoryStream.Create;
@@ -1106,15 +1122,15 @@ begin
 
     //Попытка скачать с основного сервера, в ином случае с резерва
     try
-      Listbox2.Items.Text:=Listbox1.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление c '+exe;
+      Log('Обновление c '+exe);
       Form1.Button1.Caption:='Обновление программы...';
       idHTTP1.Get(exe,buf);
     except
-      Listbox2.Items.Text:=Listbox1.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление c '+rezexe;
+      Log('Обновление c '+rezexe);
       idHTTP1.Get(rezexe,buf);
     end;
 
-    Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Программа загружена, перезапуск...';
+    Log('Программа загружена, перезапуск...');
     buf.SaveToFile(Application.Title+'.exe');
     buf.Clear;
     Application.Terminate;
@@ -1124,7 +1140,7 @@ begin
     on E : Exception do Error:=('Не удалось обновить программу'+#13+E.Message);
   end;
 
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление завершилось с кодом ошибки: '+#13+error;
+  Log(': Обновление завершилось с кодом ошибки: '+#13+error);
   Form1.Button1.Enabled:=true;
   Form1.Button1.Caption:='Обновить';
 end;
@@ -1149,37 +1165,8 @@ var
   buf: TMemoryStream;
   error: integer;
 begin
-//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка SSL библиотек... ';
-  try
-    buf:=TMemoryStream.Create;
-    try
-//      Form1.Button1.Enabled:=false;
-//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
-//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
-      HTTP.Get(libeay32,buf);
-      buf.SaveToFile('libeay32.dll');
-      buf.Clear;
-    except
-      on E : Exception do error:=1;
-    end;
-    try
-//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки ssleay32.dll... ';
-//      Form1.Button1.Caption:='Скачивание библиотеки ssleay32.dll...';
-      HTTP.Get(ssleay32,buf);
-      buf.SaveToFile('ssleay32.dll');
-      buf.Clear;
-    except
-      on E : Exception do error:=2;
-    end;
-  Finally
-    //Подгрузка списка ссылок на ресурсы
-    if error=0 then
-      begin
-//        Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершено без ошибок #'+IntToStr(error);
-        Application.Terminate;
-        ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
-      end;
-  end;
+  //Загрузка SSL библиотек libeay32.dll, ssleay32.dll
+  DownSSL;
 
 // Коды ошибок
 // #0 - ошибок нет;
@@ -1187,7 +1174,7 @@ begin
 // #2 - ошибка загрузки ssleay32.dll
 // #3 - ошибка загрузки обоих библиотек
 
-//  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Скачивание завершилось с кодом ошибки: #'+IntToStr(error);
+//  Log(': Скачивание завершилось с кодом ошибки: #'+IntToStr(error));
 //  Listbox2.Items.Text:=Listbox2.Items.Text+'#0 - ошибок нет';
 //  Listbox2.Items.Text:=Listbox2.Items.Text+'#1 - ошибка загрузки libeay32.dll';
 //  Listbox2.Items.Text:=Listbox2.Items.Text+'#2 - ошибка загрузки ssleay32.dll';
@@ -1242,7 +1229,7 @@ procedure TForm1.ListBox1DblClick(Sender: TObject);
 begin
   edit1.Text:=edit1.Text+'/'+Listbox1.Items[listbox1.ItemIndex]; //Добавление в edit выделенной строки из listbox
 
-  if pos('.jpg',edit1.Text)<>0 then
+  if pos('.jpg',edit1.Text)<>0  then
     else
       begin
         idftp1.ChangeDir(edit1.text);     //Смена директории FTP
@@ -1293,6 +1280,7 @@ begin
 //    резервный список ссылок
   end;
 
+  Log('Выполнение button1');
   button1.Click;
 {  //Если оповещение об обновлении уже есть то обновить программу
   if label7.Visible = true then
@@ -1309,7 +1297,7 @@ begin
         label7.Visible := true;
         if checkbox2.Checked = true then
           begin
-            Log('Доступно обновления программы');
+            Log('Доступно обновления программы '+newver);
             trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+newver;
             trayicon1.ShowBalloonHint;
           end;
@@ -1325,36 +1313,33 @@ var
   ssl:string;
 begin
   Log('Обработка Timer2');
+
   try
+  //Проверка наличия библиотек SSL: ssleay32 и libeay32
+ if (FileExists('ssleay32.dll')) and (FileExists('libeay32.dll'))
+    then Log('ssleay32.dll и libeay32.dll присутствуют')
+      else
+        begin
+          Log('ssleay32 и libeay32 отсутствуют');
+          //Подгрузка SSL библиотек
+          Log('Загрузка SSL библиотек... ');
+          DownSSL;
+          abort;
+        end;
+
+//  if FileExists('ssleay32.dll') then Log('ssleay32.dll присутствует');
+//  if FileExists('libeay32.dll') then Log('libeay32.dll присутствует')
+
     //Подгрузка списка ссылок на ресурсы
+    Log('Подгрузка списка ссылок на ресурсы'+#13+links);
     combobox1.Items.Text:=(idhttp1.Get(links));
   except
-    //Подгрузка SSL библиотек
-    Log('Загрузка SSL библиотек... ');
-    if DownSSL>0 then
-      begin
-        ssl:=IntToStr(DownSSL);
-        Log('Ошибка загрузки SSL библиотек #'+ssl);
-        Log('#0 - ошибок нет');
-        Log('#1 - ошибка загрузки libeay32.dll');
-        Log('#2 - ошибка загрузки ssleay32.dll');
-        Log('#3 - ошибка загрузки обоих библиотек');
-//        showmessage('Не удалось загрузить SSL библиотеки');
-//        Timer2.Enabled:=false;
-      end;
-//    Label8.OnClick(self);
   end;
 
-  if FileExists('ssleay32')
-  then Log('ssleay32 существует')
-  else Log('ssleay32 не существует');
-
-if FileExists('libeay32')
-  then Log('libeay32 существует')
-  else Log('libeay32 не существует');
 
   try
   //Проверка обновления программы
+  Log('Проверка новой версии программы: '+#13+lastver);
   newver:=idhttp1.Get(lastver);
   Log('Новая версия программы: '+newver);
   if newver <> ver then
