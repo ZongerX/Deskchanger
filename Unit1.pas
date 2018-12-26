@@ -49,6 +49,7 @@ type
     Обновить: TMenuItem;
     CheckBox4: TCheckBox;
     ListBox2: TListBox;
+    CheckBox5: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -110,6 +111,7 @@ type
     procedure Label3DblClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure Label5Click(Sender: TObject);
+    procedure CheckBox5Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -178,12 +180,9 @@ begin
     end;
   Finally
     //Подгрузка списка ссылок на ресурсы
-    if error=0 then
-      begin
 //        Log('Скачивание завершено #'+IntToStr(error));
-        Application.Terminate;
-        ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
-      end;
+    Application.Terminate;
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
   end;
   buf.Clear;
 
@@ -323,6 +322,7 @@ var
   buf: TMemoryStream;
 begin
   buf:=TMemoryStream.Create;
+  Log('Источник: '+Combobox1.Text);
   if pos('Выберите источник', Combobox1.Text)=1 then
     begin
       showmessage('Нет ссылки');
@@ -393,25 +393,25 @@ var
   sort:TStringList;
 begin
   Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка с FTP: '+combobox1.Text;
-  try
   Date:=(DateToStr(CurrentDateTime(false))); //Сегодняшнюю дату в string и в переменную
   Mon:=Date[4]+Date[5];//Месяц 4 и 5 цифры
   Year:=Date[7]+Date[8]+Date[9]+Date[10]; //Год 7,8,9,10 цифры
 
   //Определение настроек FTP
   Form1.idftp1.Host:='217.174.103.107';
+//  Form1.idftp1.Host:='ftp.ntsomz.ru';
   Form1.idftp1.Port:=21;
   Form1.idftp1.Username:='electro';
   Form1.idftp1.Password:='electro';
 
   Try
     begin
-      Form1.Button1.Enabled:=false;
       //Подключение к ftp
       listbox1.Items.Text:=listbox1.Items.Text+'Подключение к FTP...';
       Log('Подключение к FTP...');
+      Form1.Button1.Enabled:=false;
       Form1.Button1.Caption:='Подключение к FTP...';
-      Form1.idftp1.Disconnect;  //Отключение (если вдруг подключено)
+//      Form1.idftp1.Disconnect;  //Отключение (если вдруг подключено)
       Form1.idftp1.Connect;  //Подключение
       AssErt(Form1.idftp1.Connected);     //Подключение
       listbox1.Items.Text:=listbox1.Items.Text+'Подключено '+idftp1.Host;
@@ -538,15 +538,18 @@ begin
     label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
     end;
   Except
+    on E : Exception do
+      begin
+        Log('Не удалось обновить снимок: '+#13+E.Message);
+        Form1.Button1.Enabled:=True;
+        Form1.Button1.Caption:='Обновить';
+        exit;
+      end;
 //    Form1.label4.Caption:='Проверьте интернет соединение';
 //    Form1.CoolTrayIcon1.ShowBalloonHint('Desktop Changer '+ver, 'Ошибка резервного сервера', biterror, 10);
-    exit;
   End;
-  except
-    on E : Exception do Showmessage('Не удалось обновить снимок:'+#13+E.Message);
-  end;
 
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновлено успешно: '+combobox1.Text;
+  Log('Обновлено успешно: '+combobox1.Text);
   Form1.idftp1.Disconnect;
   Form1.Button1.Caption:='Обновить';
   Form1.Button1.Enabled:=true;
@@ -559,30 +562,30 @@ begin
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
-var
-buf: TMemoryStream;
-http: Tidhttp;
-begin
-    buf:=TMemoryStream.Create;
-    Http := TIdHTTP.Create(nil);
-    Log(edit1.Text+' Downloading...');
-    try
-//      Form1.Button1.Enabled:=false;
-//      Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Загрузка библиотеки libeay32.dll... ';
-//      Form1.Button1.Caption:='Скачивание библиотеки libeay32.dll...';
 
-      HTTP.Get(edit1.Text,buf);
-      buf.SaveToFile('test.png');
-      buf.Clear;
-      Listbox1.Items.text:= Listbox1.Items.text+exe+'1';
-//      Listbox1.Items.text:= Listbox1.Items.text+rezexe;
-//      Listbox1.Items.text:= Listbox1.Items.text+lastver;
-//      Listbox1.Items.text:= Listbox1.Items.text+links;
-//      Listbox1.Items.text:= Listbox1.Items.text+libeay32;
-//      Listbox1.Items.text:= Listbox1.Items.text+ssleay32+'2';
-      except
-//      on E : Exception do showmessage(E.Message);
-    end;
+begin
+
+if edit1.Text='1' then idftp1.ProxySettings.ProxyType:=fpcmUserPass;
+Log('Режим аутентификации 1: fpcmUserPass');
+if edit1.Text='2' then idftp1.ProxySettings.ProxyType:=fpcmSite;
+Log('Режим аутентификации 2: fpcmSite');
+if edit1.Text='3' then idftp1.ProxySettings.ProxyType:=fpcmOpen;
+Log('Режим аутентификации 3: fpcmOpen');
+//if edit1.Text='4' then idftp1.ProxySettings.ProxyType:=Transparent;
+//Log('Режим аутентификации 4: Transparent');
+if edit1.Text='5' then idftp1.ProxySettings.ProxyType:=fpcmUserHostFireWallID;
+Log('Режим аутентификации 5: fpcmUserHostFireWallID');
+if edit1.Text='6' then idftp1.ProxySettings.ProxyType:=fpcmNovellBorder;
+Log('Режим аутентификации 6: fpcmNovellBorder');
+if edit1.Text='7' then idftp1.ProxySettings.ProxyType:=fpcmHttpProxyWithFtp;
+Log('Режим аутентификации 7: fpcmHttpProxyWithFtp');
+if edit1.Text='8' then idftp1.ProxySettings.ProxyType:=fpcmCustomProxy;
+Log('Режим аутентификации 8: fpcmCustomProxy');
+if edit1.Text='9' then idftp1.ProxySettings.ProxyType:=fpcmUserSite;
+Log('Режим аутентификации 9: fpcmUserSite');
+
+Log('Настройки аутентификации прокси:'+#13+'Login: '+idftp1.ProxySettings.UserName+'Pass: '+idftp1.ProxySettings.Password);
+Log('Режим аутентификации : '+edit1.Text);
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -651,10 +654,30 @@ begin
     end;
 end;
 
+procedure TForm1.CheckBox5Click(Sender: TObject);
+var
+  login : string;
+  pass : string;
+begin
+  if checkbox5.Checked then
+    begin
+      login := InputBox('Login proxy','Login','');
+      pass := InputBox('Password proxy','Password','');
+//      ShowMessage('Login: '+log+#10#13+ 'password: '+pass+ ' ');
+      idhttp1.ProxyParams.ProxyUsername:=login;
+      idhttp1.ProxyParams.ProxyPassword:=pass;
+      idftp1.ProxySettings.UserName:=login;
+      idftp1.ProxySettings.Password:=pass;
+      idftp1.ProxySettings.ProxyType:=fpcmUserPass;
+      Log('Настройки аутентификации прокси:'+#13+'Login: '+login+'Pass: '+pass);
+    end;
+end;
+
 procedure TForm1.ComboBox1Change(Sender: TObject);
 var
   reg:TRegistry;
 begin
+  Log('Изменение данных источника: '+Combobox1.Text);
   reg:=TRegistry.Create;
   reg.RootKey:=HKEY_CURRENT_USER;
   reg.CreateKey('DeskChanger');
@@ -673,7 +696,7 @@ procedure TForm1.ComboBox1ContextPopup(Sender: TObject; MousePos: TPoint;
 begin
 //  showmessage('Подгружаю ссылки');
   Button1.Enabled:=false;
-  Button1.Caption:='Обновление ссылок источников';
+  Button1.Caption:='Обновление ссылок на источники';
 
   //Подгрузка списка ссылок на ресурсы
   combobox1.Items.Text:=idhttp1.Get(links);
@@ -866,6 +889,7 @@ begin
           if checkbox4.Checked=true then
             begin
               form1.Visible:=false;
+              Label3.OnDblClick(self);
               abort;
             end
               else Application.Terminate;
@@ -933,10 +957,12 @@ begin
       begin
         idhttp1.ProxyParams.ProxyServer:=(ProxyServer);
         idhttp1.ProxyParams.ProxyPort:=(ProxyPort);
+        idftp1.ProxySettings.Port:=StrToInt(Edit3.Text);
+        idftp1.ProxySettings.Host:=Edit3.Text;
+        Log('Получены настройки прокси системы :'+#13+'server: '+ProxyServer+' port: '+IntToStr(ProxyPort));
 //        ShowMessage(ProxyServer+':'+IntToStr(ProxyPort));
       end;
   end;
-
   //Подгрузка настроек прокси из реестра
   if reg.ReadString('AutoProxy')='0' then
     begin
@@ -1049,6 +1075,7 @@ begin
       else
         begin
           Form1.BorderStyle:=TFormBorderStyle(1);
+          Button4.Visible:=false;
           form1.Width:= 350;
           Label2.OnClick(self);
         end;
@@ -1075,6 +1102,7 @@ end;
 procedure TForm1.Label5Click(Sender: TObject);
 begin
   Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Открыта "Карта ветров"';
+  ShellExecute(0, 'open', 'https://earth.nullschool.net/ru/#current/wind/surface/level/orthographic=77.8,35.797', nil, nil, SW_SHOW);
 end;
 
 procedure TForm1.Label5MouseEnter(Sender: TObject);
@@ -1160,10 +1188,10 @@ end;
 
 
 procedure TForm1.Label8Click(Sender: TObject);
-var
-  http: Tidhttp;
-  buf: TMemoryStream;
-  error: integer;
+//var
+//  http: Tidhttp;
+//  buf: TMemoryStream;
+//  error: integer;
 begin
   //Загрузка SSL библиотек libeay32.dll, ssleay32.dll
   DownSSL;
@@ -1254,6 +1282,7 @@ begin
     begin
       edit2.Enabled:=false;
       edit3.Enabled:=false;
+      checkbox5.Enabled:=false;
     end;
 end;
 
@@ -1263,6 +1292,7 @@ begin
     begin
       edit2.Enabled:=true;
       edit3.Enabled:=true;
+      checkbox5.Enabled:=true;
     end;
 end;
 
@@ -1310,9 +1340,22 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   newver: String;
-  ssl:string;
 begin
   Log('Обработка Timer2');
+
+  //Проверка на активность
+  if Application.MainForm.Visible=true then
+    begin
+      //Если активна отложить обновление при запуске
+      Log('Форма активна, ожидание сворачивания в трей...');
+      timer2.Interval:=timer2.Interval+5000;
+      exit;
+    end
+      else
+        begin
+          //Иначе обновить снимок
+//          if checkbox1.Checked then button1.Click;
+        end;
 
   try
   //Проверка наличия библиотек SSL: ssleay32 и libeay32
@@ -1336,7 +1379,6 @@ begin
   except
   end;
 
-
   try
   //Проверка обновления программы
   Log('Проверка новой версии программы: '+#13+lastver);
@@ -1352,19 +1394,7 @@ begin
   end;
 
     button1.Click;
-{  //Проверка на активность
-  if Application.MainForm.Visible=true then
-    begin
-      //Если активна отложить обновление при запуске
-      timer2.Interval:=timer2.Interval+5000;
-      exit;
-    end
-      else
-        begin
-          //Иначе обновить снимок
-          if checkbox1.Checked then button1.Click;
-        end;
-}
+
   timer2.Destroy;
 end;
 

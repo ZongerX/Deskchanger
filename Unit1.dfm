@@ -105,8 +105,8 @@
     OnMouseLeave = Label5MouseLeave
   end
   object Label6: TLabel
-    Left = 274
-    Top = 200
+    Left = 275
+    Top = 218
     Width = 61
     Height = 13
     Cursor = crHandPoint
@@ -139,8 +139,8 @@
     OnMouseLeave = Label7MouseLeave
   end
   object Label8: TLabel
-    Left = 161
-    Top = 200
+    Left = 162
+    Top = 218
     Width = 80
     Height = 13
     Caption = 'SSL '#1073#1080#1073#1083#1080#1086#1090#1077#1082#1080
@@ -155,8 +155,89 @@
     OnMouseEnter = Label8MouseEnter
     OnMouseLeave = Label8MouseLeave
   end
+  object GroupBox1: TGroupBox
+    Left = 162
+    Top = 119
+    Width = 174
+    Height = 98
+    Caption = #1055#1088#1086#1082#1089#1080
+    Color = clBtnFace
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentBackground = False
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 7
+    object RadioButton1: TRadioButton
+      Left = 11
+      Top = 34
+      Width = 113
+      Height = 17
+      Caption = #1040#1074#1090#1086#1086#1087#1088#1077#1076#1077#1083#1077#1085#1080#1077
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+      OnClick = RadioButton1Click
+    end
+    object RadioButton2: TRadioButton
+      Left = 11
+      Top = 50
+      Width = 113
+      Height = 17
+      Caption = #1059#1082#1072#1079#1072#1090#1100' '#1074#1088#1091#1095#1085#1091#1102
+      TabOrder = 1
+      OnClick = RadioButton2Click
+    end
+    object Edit2: TEdit
+      Left = 3
+      Top = 71
+      Width = 115
+      Height = 21
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clGray
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      Text = 'IP'
+      OnEnter = Edit2Enter
+      OnExit = Edit2Exit
+    end
+    object Edit3: TEdit
+      Left = 121
+      Top = 71
+      Width = 47
+      Height = 21
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clGray
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 3
+      Text = 'Port'
+      OnEnter = Edit3Enter
+      OnExit = Edit3Exit
+    end
+    object CheckBox5: TCheckBox
+      Left = 11
+      Top = 16
+      Width = 102
+      Height = 17
+      Caption = #1040#1091#1090#1077#1085#1090#1080#1092#1080#1082#1072#1094#1080#1103
+      Enabled = False
+      TabOrder = 4
+      OnClick = CheckBox5Click
+    end
+  end
   object ComboBox1: TComboBox
-    Left = 9
+    Left = 10
     Top = 5
     Width = 326
     Height = 21
@@ -234,77 +315,6 @@
       '60'
       '120')
   end
-  object GroupBox1: TGroupBox
-    Left = 161
-    Top = 119
-    Width = 174
-    Height = 80
-    Caption = #1055#1088#1086#1082#1089#1080
-    Color = clBtnFace
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentBackground = False
-    ParentColor = False
-    ParentFont = False
-    TabOrder = 7
-    object RadioButton1: TRadioButton
-      Left = 11
-      Top = 16
-      Width = 113
-      Height = 17
-      Caption = #1040#1074#1090#1086#1086#1087#1088#1077#1076#1077#1083#1077#1085#1080#1077
-      Checked = True
-      TabOrder = 0
-      TabStop = True
-      OnClick = RadioButton1Click
-    end
-    object RadioButton2: TRadioButton
-      Left = 11
-      Top = 31
-      Width = 113
-      Height = 17
-      Caption = #1059#1082#1072#1079#1072#1090#1100' '#1074#1088#1091#1095#1085#1091#1102
-      TabOrder = 1
-      OnClick = RadioButton2Click
-    end
-    object Edit2: TEdit
-      Left = 3
-      Top = 54
-      Width = 115
-      Height = 21
-      Enabled = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clGray
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 2
-      Text = 'IP'
-      OnEnter = Edit2Enter
-      OnExit = Edit2Exit
-    end
-    object Edit3: TEdit
-      Left = 124
-      Top = 54
-      Width = 47
-      Height = 21
-      Enabled = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clGray
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 3
-      Text = 'Port'
-      OnEnter = Edit3Enter
-      OnExit = Edit3Exit
-    end
-  end
   object CheckBox1: TCheckBox
     Left = 9
     Top = 162
@@ -364,6 +374,7 @@
     Passive = True
     ConnectTimeout = 0
     TransferType = ftBinary
+    UseExtensionDataPort = True
     NATKeepAlive.UseKeepAlive = False
     NATKeepAlive.IdleTimeMS = 0
     NATKeepAlive.IntervalMS = 0
