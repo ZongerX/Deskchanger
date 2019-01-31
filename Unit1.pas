@@ -79,7 +79,6 @@ type
     procedure Edit3Exit(Sender: TObject);
     procedure Edit2Enter(Sender: TObject);
     procedure Edit2Exit(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
     procedure Label4MouseEnter(Sender: TObject);
     procedure Label5MouseEnter(Sender: TObject);
     procedure Label6MouseEnter(Sender: TObject);
@@ -109,9 +108,10 @@ type
     procedure Edit1ContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure Label3DblClick(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure Label5Click(Sender: TObject);
     procedure CheckBox5Click(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -153,11 +153,11 @@ begin
   Result := buff;
 end;
 
-function DownSSL: integer;
+function DownSSL: string;
 var
   http: Tidhttp;
   buf: TMemoryStream;
-  error: integer;
+  error: string;
 begin
   try
     buf:=TMemoryStream.Create;
@@ -168,7 +168,7 @@ begin
       buf.SaveToFile('libeay32.dll');
       buf.Clear;
     except
-      on E : Exception do Error:=1;
+      on E : Exception do Error:=('Ошибка загрузки libeay32.dll: '+#13+E.Message);
     end;
     try
       //Скачивание библиотеки ssleay32.dll
@@ -176,28 +176,12 @@ begin
       buf.SaveToFile('ssleay32.dll');
       buf.Clear;
     except
-      on E : Exception do Error:=2;
+      on E : Exception do Error:=('Ошибка загрузки ssleay32.dll:'+#13+E.Message);
     end;
   Finally
-    //Подгрузка списка ссылок на ресурсы
-//        Log('Скачивание завершено #'+IntToStr(error));
     Application.Terminate;
     ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
   end;
-  buf.Clear;
-
-// Коды ошибок
-// #0 - ошибок нет;
-// #1 - ошибка загрузки libeay32.dll
-// #2 - ошибка загрузки ssleay32.dll
-// #3 - ошибка загрузки обоих библиотек
-
-//  Log(': Скачивание завершилось с кодом ошибки: #'+IntToStr(error));
-//  Log('#0 - ошибок нет');
-//  Log('#1 - ошибка загрузки libeay32.dll');
-//  Log('#2 - ошибка загрузки ssleay32.dll');
-//  Log('#3 - ошибка загрузки обоих библиотек');
-
   Result:=Error;
 end;
 
@@ -344,7 +328,7 @@ begin
       Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
       buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
-      Log('Установка снимка Himawari');
+      Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari.bmp'));
       SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
@@ -359,13 +343,13 @@ begin
       exit;
     end;
 
-
+{
   if (ComboBox1.Text='Himawari') or (ComboBox1.Text='Himawari HD') then
     begin
       Button2.Click;
       exit;
     end;
-
+}
   if pos('http://', Combobox1.Text) or pos('https://', Combobox1.Text)=0 then
     ComboBox1.Text:=('http://'+Combobox1.Text);
 
@@ -543,6 +527,7 @@ begin
         Log('Не удалось обновить снимок: '+#13+E.Message);
         Form1.Button1.Enabled:=True;
         Form1.Button1.Caption:='Обновить';
+        Form1.IdFTP1.Disconnect;
         exit;
       end;
 //    Form1.label4.Caption:='Проверьте интернет соединение';
@@ -558,34 +543,12 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 begin
-  Label7.Visible:=true;
+Label7.Visible:=true;
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
-
 begin
-
-if edit1.Text='1' then idftp1.ProxySettings.ProxyType:=fpcmUserPass;
-Log('Режим аутентификации 1: fpcmUserPass');
-if edit1.Text='2' then idftp1.ProxySettings.ProxyType:=fpcmSite;
-Log('Режим аутентификации 2: fpcmSite');
-if edit1.Text='3' then idftp1.ProxySettings.ProxyType:=fpcmOpen;
-Log('Режим аутентификации 3: fpcmOpen');
-//if edit1.Text='4' then idftp1.ProxySettings.ProxyType:=Transparent;
-//Log('Режим аутентификации 4: Transparent');
-if edit1.Text='5' then idftp1.ProxySettings.ProxyType:=fpcmUserHostFireWallID;
-Log('Режим аутентификации 5: fpcmUserHostFireWallID');
-if edit1.Text='6' then idftp1.ProxySettings.ProxyType:=fpcmNovellBorder;
-Log('Режим аутентификации 6: fpcmNovellBorder');
-if edit1.Text='7' then idftp1.ProxySettings.ProxyType:=fpcmHttpProxyWithFtp;
-Log('Режим аутентификации 7: fpcmHttpProxyWithFtp');
-if edit1.Text='8' then idftp1.ProxySettings.ProxyType:=fpcmCustomProxy;
-Log('Режим аутентификации 8: fpcmCustomProxy');
-if edit1.Text='9' then idftp1.ProxySettings.ProxyType:=fpcmUserSite;
-Log('Режим аутентификации 9: fpcmUserSite');
-
-Log('Настройки аутентификации прокси:'+#13+'Login: '+idftp1.ProxySettings.UserName+'Pass: '+idftp1.ProxySettings.Password);
-Log('Режим аутентификации : '+edit1.Text);
+  Log(IntToStr(combobox1.Items.Count));
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -988,10 +951,7 @@ end;
 
 procedure TForm1.FormResize(Sender: TObject);
 begin
-  Listbox2.Width:=Form1.Width-365;
-  Listbox2.Height:=Form1.Height-50;
-  Listbox1.Height:=Form1.Height-360;
-
+Listbox1.Height:=Form1.Height-357;
 end;
 
 procedure TForm1.Label2Click(Sender: TObject);
@@ -1010,6 +970,7 @@ if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
 //              Form1.Caption:=inttostr(vers);
 //              Form1.Caption:=Form1.Caption+'.';
               form1.Height:=form1.Height-4;
+              form1.Update;
               sleep(1);
             end;
         end;
@@ -1019,6 +980,7 @@ if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
           Form1.Caption:=inttostr(i);
           Form1.Caption:=Form1.Caption+'.';
           form1.Height:=form1.Height+4;
+          form1.Update;
           sleep(1);
         end;
     end;
@@ -1060,7 +1022,7 @@ end;
 procedure TForm1.Label3ContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 begin
-  Form1.ClientHeight:=Listbox1.Top+190;
+  Form1.ClientHeight:=Listbox1.Top+250;
 end;
 
 procedure TForm1.Label3DblClick(Sender: TObject);
@@ -1139,9 +1101,8 @@ end;
 procedure TForm1.Label7Click(Sender: TObject);
 var
   buf: TMemoryStream;
-  error: string;
 begin
-  Log('Начало обновления '+ver+' на '+lastver);
+  Log('Начало обновления программы '+ver+' на '+lastver);
   //Обновление программы
   try
     buf:=TMemoryStream.Create;
@@ -1150,11 +1111,12 @@ begin
 
     //Попытка скачать с основного сервера, в ином случае с резерва
     try
-      Log('Обновление c '+exe);
+      Log('Попытка обновления c '+exe);
       Form1.Button1.Caption:='Обновление программы...';
       idHTTP1.Get(exe,buf);
     except
-      Log('Обновление c '+rezexe);
+      Log('Попытка обновления c '+rezexe);
+      buf.Clear;
       idHTTP1.Get(rezexe,buf);
     end;
 
@@ -1165,10 +1127,9 @@ begin
     ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/upd', nil, SW_SHOW);
     DeleteFile(Pchar(Application.Title+'.exe'));
   except
-    on E : Exception do Error:=('Не удалось обновить программу'+#13+E.Message);
+    on E : Exception do Log('Не удалось обновить программу: '+#13+E.Message);
   end;
 
-  Log(': Обновление завершилось с кодом ошибки: '+#13+error);
   Form1.Button1.Enabled:=true;
   Form1.Button1.Caption:='Обновить';
 end;
@@ -1343,6 +1304,13 @@ var
 begin
   Log('Обработка Timer2');
 
+  //Подгрузка списка ссылок на ресурсы
+  If combobox1.Items.Count<5 then
+    begin
+      Log('Подгрузка списка ссылок на ресурсы'+#13+links);
+      Combobox1.Items.Text:=(idhttp1.Get(links));
+    end;
+
   //Проверка на активность
   if Application.MainForm.Visible=true then
     begin
@@ -1372,10 +1340,6 @@ begin
 
 //  if FileExists('ssleay32.dll') then Log('ssleay32.dll присутствует');
 //  if FileExists('libeay32.dll') then Log('libeay32.dll присутствует')
-
-    //Подгрузка списка ссылок на ресурсы
-    Log('Подгрузка списка ссылок на ресурсы'+#13+links);
-    combobox1.Items.Text:=(idhttp1.Get(links));
   except
   end;
 

@@ -272,10 +272,10 @@
     OnClick = Button2Click
   end
   object ListBox1: TListBox
-    Left = 10
+    Left = 8
     Top = 315
-    Width = 326
-    Height = 180
+    Width = 327
+    Height = 182
     ItemHeight = 13
     TabOrder = 3
     OnContextPopup = ListBox1ContextPopup
@@ -362,12 +362,17 @@
     OnClick = CheckBox4Click
   end
   object ListBox2: TListBox
-    Left = 342
-    Top = 2
-    Width = 360
-    Height = 490
+    AlignWithMargins = True
+    Left = 340
+    Top = 3
+    Width = 367
+    Height = 494
+    Margins.Left = 340
+    Align = alClient
     ItemHeight = 13
     TabOrder = 13
+    ExplicitLeft = 345
+    ExplicitTop = -2
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
