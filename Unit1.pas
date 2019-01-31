@@ -852,7 +852,10 @@ begin
           if checkbox4.Checked=true then
             begin
               form1.Visible:=false;
-              Label3.OnDblClick(self);
+              Form1.BorderStyle:=TFormBorderStyle(1);
+              Button4.Visible:=false;
+              form1.Height:=150;
+              form1.Width:= 350;
               abort;
             end
               else Application.Terminate;
@@ -906,7 +909,7 @@ begin
     else checkbox4.Checked:=true;
 
   //Подгрузка интервала обновления
-  if reg.ValueExists('Updinterval') then Timer1.interval:=StrToInt(reg.ReadString('UpdInterval'));
+  if reg.ValueExists('UpdInterval') then Timer1.interval:=StrToInt(reg.ReadString('UpdInterval'));
   if Timer1.Interval=600000 then Combobox2.ItemIndex:=1;
   if Timer1.Interval=1800000 then  Combobox2.ItemIndex:=2;
   if Timer1.Interval=3600000 then  Combobox2.ItemIndex:=3;
@@ -958,6 +961,7 @@ procedure TForm1.Label2Click(Sender: TObject);
   var i :integer;
 begin
 //Сворачивание и разворачивание настроек
+If Form1.BorderStyle=TFormBorderStyle(2) then Form1.BorderStyle:=TFormBorderStyle(1);
 if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
   else
     begin
@@ -969,6 +973,7 @@ if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
               i:=i+1;
 //              Form1.Caption:=inttostr(vers);
 //              Form1.Caption:=Form1.Caption+'.';
+              Button4.Visible:=false;
               form1.Height:=form1.Height-4;
               form1.Update;
               sleep(1);
@@ -1032,7 +1037,7 @@ begin
       Form1.BorderStyle:=TFormBorderStyle(2);
       button4.Visible:=true;
       Form1.ClientHeight:=Listbox1.Top+190;
-      Form1.Width:=700;
+      Form1.Width:=750;
     end
       else
         begin
@@ -1046,7 +1051,7 @@ end;
 procedure TForm1.Label4Click(Sender: TObject);
 begin
   ShellExecute(0, 'open', 'https://vk.com/deskchanger', nil, nil, SW_SHOW);
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Открыта "Поддержка"';
+  Log(': Открыта "Поддержка"');
 end;
 
 procedure TForm1.Label4MouseEnter(Sender: TObject);
@@ -1063,7 +1068,7 @@ end;
 
 procedure TForm1.Label5Click(Sender: TObject);
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Открыта "Карта ветров"';
+  Log(': Открыта "Карта ветров"');
   ShellExecute(0, 'open', 'https://earth.nullschool.net/ru/#current/wind/surface/level/orthographic=77.8,35.797', nil, nil, SW_SHOW);
 end;
 
@@ -1308,7 +1313,11 @@ begin
   If combobox1.Items.Count<5 then
     begin
       Log('Подгрузка списка ссылок на ресурсы'+#13+links);
+      Button1.Caption:='Подгрузка списка ссылок на ресурсы';
+      Button1.Enabled:=false;
       Combobox1.Items.Text:=(idhttp1.Get(links));
+      Button1.Caption:='Обновить';
+      Button1.Enabled:=true;
     end;
 
   //Проверка на активность

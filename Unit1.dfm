@@ -5,7 +5,7 @@
   BorderStyle = bsSingle
   Caption = 'DeskChanger'
   ClientHeight = 500
-  ClientWidth = 710
+  ClientWidth = 693
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -54,7 +54,7 @@
     OnMouseLeave = Label2MouseLeave
   end
   object Label3: TLabel
-    Left = 9
+    Left = 8
     Top = 32
     Width = 122
     Height = 13
@@ -365,14 +365,13 @@
     AlignWithMargins = True
     Left = 340
     Top = 3
-    Width = 367
+    Width = 350
     Height = 494
     Margins.Left = 340
     Align = alClient
     ItemHeight = 13
     TabOrder = 13
-    ExplicitLeft = 345
-    ExplicitTop = -2
+    ExplicitWidth = 367
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
