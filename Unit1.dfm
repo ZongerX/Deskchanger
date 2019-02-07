@@ -371,7 +371,6 @@
     Align = alClient
     ItemHeight = 13
     TabOrder = 13
-    ExplicitWidth = 367
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
@@ -379,7 +378,8 @@
     ConnectTimeout = 0
     TransferType = ftBinary
     UseExtensionDataPort = True
-    NATKeepAlive.UseKeepAlive = False
+    TryNATFastTrack = True
+    NATKeepAlive.UseKeepAlive = True
     NATKeepAlive.IdleTimeMS = 0
     NATKeepAlive.IntervalMS = 0
     ProxySettings.ProxyType = fpcmNone
