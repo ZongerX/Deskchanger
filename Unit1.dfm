@@ -379,7 +379,7 @@
     TransferType = ftBinary
     UseExtensionDataPort = True
     TryNATFastTrack = True
-    NATKeepAlive.UseKeepAlive = True
+    NATKeepAlive.UseKeepAlive = False
     NATKeepAlive.IdleTimeMS = 0
     NATKeepAlive.IntervalMS = 0
     ProxySettings.ProxyType = fpcmNone
