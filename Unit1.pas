@@ -50,6 +50,9 @@ type
     CheckBox4: TCheckBox;
     ListBox2: TListBox;
     CheckBox5: TCheckBox;
+    Button5: TButton;
+    Timer3: TTimer;
+    CheckBox6: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -112,6 +115,9 @@ type
     procedure CheckBox5Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Timer3Timer(Sender: TObject);
+    procedure CheckBox6Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -128,6 +134,7 @@ var
   links: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
   libeay32: String = 'http://games-wars.ucoz.ru/libeay32.dll';
   ssleay32: String = 'http://games-wars.ucoz.ru/ssleay32.dll';
+  animate: integer;
 
 implementation
 
@@ -266,7 +273,7 @@ var
 begin
   //Получение даты и времени по UTC = (true)
   Today:=CurrentDateTime(true);
-
+{
   //Дату в переменные
   DateTimeToString(Day,'dd',today);
   DateTimeToString(Mon,'mm',today);
@@ -274,11 +281,11 @@ begin
 
   //Время в переменные
   DateTimeToString(Hour,'hh',today);
-  DateTimeToString(Min,'nn',today);
+}  DateTimeToString(Min,'nn',today);
 
 //  showmessage('Изначальное: '+Day+'\'+Hour+':'+Min);
 
-  //Снимок обрабатывается 5 минут каждые 10,20,30...60 минут
+  //Снимок обрабатывается 5 минут каждую 10-ю минуту (10,20,30...60)
   if StrToInt(Min[2])<6 then
     begin
       //Вычитаем 10 минут от времени
@@ -304,6 +311,7 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 var
   buf: TMemoryStream;
+  hima:string;
 begin
   buf:=TMemoryStream.Create;
   Log('Источник: '+Combobox1.Text);
@@ -327,18 +335,22 @@ begin
       Button1.Caption:='Загрузка снимка Himawari...';
       Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
-      buf.SaveToFile(GetWin('%AppData%')+'\himawari.bmp'); //Сохранение
-      Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari.bmp'));
-      SetWallpaper(GetWin('%AppData%')+'\himawari.bmp');
+      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp'); //Сохранение
+      buf.Clear;
+      Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp'));
+      SetWallpaper(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
 
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
       except
-        Log('Ошибка обновления с Himawari ');
+        on E : Exception do
+        begin 
+        Log('Ошибка обновления с Himawari: '+#13+E.Message);
         Button1.Caption:='Обновить';
         Button1.Enabled:=true;
+        end;
       end;
       exit;
     end;
@@ -547,8 +559,74 @@ Label7.Visible:=true;
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
+var
+  searchResult : tsearchrec;
+  SL: TStringList;
 begin
-  Log(IntToStr(combobox1.Items.Count));
+  try
+  SL:=TStringList.Create;
+  if FindFirst( 'himawari*',faAnyFile,searchResult) = 0 then
+    repeat
+      SL.Add(searchResult.name);
+//      ListBox1.Items.Add(searchResult.name);
+    until FindNext(searchResult) <> 0;
+  FindClose(searchResult);
+//  Listbox1.Items:=SL;
+//  Log(SL.Strings[0]);
+//  Log('Установка снимка Himawari: '+#13+(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]));
+//  SetWallpaper(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]);
+  SetWallpaper(GetWin('%AppData%')+'\'+SL.Strings[animate]);
+  animate:=animate+1;
+  if Sl.Count=animate then animate:=0
+  except
+  end;
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  buf: TMemoryStream;
+  today : TDateTime;
+  Min,Hour,Day,Mon,Year:String;
+  MinInt,HourInt:integer;
+  
+  I: Integer;
+begin
+  Today:=CurrentDateTime(true);
+  //Дату в переменные
+  DateTimeToString(Day,'dd',today);
+  DateTimeToString(Mon,'mm',today);
+  DateTimeToString(Year,'yyyy',today);
+
+  //Время в переменные
+//  DateTimeToString(Hour,'hh',today);
+//  DateTimeToString(Min,'nn',today);
+    Hour:='00';
+    Min:='00';
+    Log(Hour+Min);
+//  FormatDateTime('yymmdd',now);
+  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
+  for I := 1 to 114 do
+    begin
+//      idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
+      Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png');
+      MinInt:=MinInt+10;
+      if MinInt>60 then
+        begin 
+          HourInt:=HourInt+1;
+          MinInt:=0;
+        end;
+      if minInt<10 then Min:='0'+IntToStr(MinInt)
+        else Min:=IntToStr(MinInt); 
+      if HourInt<10 then Hour:='0'+IntToStr(hourInt)
+        else Hour:=IntToStr(hourInt);
+      Log(Hour+' : '+Min);
+    end;
+
+//  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
+//  buf.Clear;
+//  Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_.bmp'));
+//  SetWallpaper(GetWin('%AppData%')+'\himawari_.bmp');
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -634,6 +712,12 @@ begin
       idftp1.ProxySettings.ProxyType:=fpcmUserPass;
       Log('Настройки аутентификации прокси:'+#13+'Login: '+login+'Pass: '+pass);
     end;
+end;
+
+procedure TForm1.CheckBox6Click(Sender: TObject);
+begin
+if checkbox6.Checked then timer3.Enabled:=true
+  else timer3.Enabled:=false;
 end;
 
 procedure TForm1.ComboBox1Change(Sender: TObject);
@@ -854,6 +938,7 @@ begin
               form1.Visible:=false;
               Form1.BorderStyle:=TFormBorderStyle(1);
               Button4.Visible:=false;
+              button5.Visible:=true;
               form1.Height:=150;
               form1.Width:= 350;
               abort;
@@ -1036,6 +1121,7 @@ begin
     begin
       Form1.BorderStyle:=TFormBorderStyle(2);
       button4.Visible:=true;
+      button5.Visible:=true;
       Form1.ClientHeight:=Listbox1.Top+190;
       Form1.Width:=750;
     end
@@ -1043,6 +1129,7 @@ begin
         begin
           Form1.BorderStyle:=TFormBorderStyle(1);
           Button4.Visible:=false;
+          button5.Visible:=true;
           form1.Width:= 350;
           Label2.OnClick(self);
         end;
@@ -1313,8 +1400,8 @@ begin
   If combobox1.Items.Count<5 then
     begin
       Log('Подгрузка списка ссылок на ресурсы'+#13+links);
-      Button1.Caption:='Подгрузка списка ссылок на ресурсы';
       Button1.Enabled:=false;
+      Button1.Caption:='Подгрузка списка ссылок на ресурсы';
       Combobox1.Items.Text:=(idhttp1.Get(links));
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
@@ -1369,6 +1456,11 @@ begin
     button1.Click;
 
   timer2.Destroy;
+end;
+
+procedure TForm1.Timer3Timer(Sender: TObject);
+begin
+Button4.OnClick(self);
 end;
 
 procedure TForm1.TrayIcon1Click(Sender: TObject);

@@ -372,6 +372,25 @@
     ItemHeight = 13
     TabOrder = 13
   end
+  object Button5: TButton
+    Left = 193
+    Top = 32
+    Width = 75
+    Height = 25
+    Caption = 'Button5'
+    TabOrder = 14
+    Visible = False
+    OnClick = Button5Click
+  end
+  object CheckBox6: TCheckBox
+    Left = 9
+    Top = 235
+    Width = 97
+    Height = 17
+    Caption = #1040#1085#1080#1084#1072#1094#1080#1103
+    TabOrder = 15
+    OnClick = CheckBox6Click
+  end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
     Passive = True
@@ -478,7 +497,7 @@
   end
   object PopupActionBar1: TPopupActionBar
     TrackButton = tbLeftButton
-    Left = 176
+    Left = 208
     Top = 65520
     object Обновить: TMenuItem
       Caption = #1054#1073#1085#1086#1074#1080#1090#1100
@@ -901,5 +920,12 @@
       Caption = #1042#1099#1093#1086#1076
       OnClick = N1Click
     end
+  end
+  object Timer3: TTimer
+    Enabled = False
+    Interval = 1500
+    OnTimer = Timer3Timer
+    Left = 176
+    Top = 65520
   end
 end
