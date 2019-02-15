@@ -303,7 +303,7 @@
   object ComboBox2: TComboBox
     Left = 9
     Top = 135
-    Width = 120
+    Width = 73
     Height = 21
     TabOrder = 6
     Text = '30'
@@ -390,6 +390,22 @@
     Caption = #1040#1085#1080#1084#1072#1094#1080#1103
     TabOrder = 15
     OnClick = CheckBox6Click
+  end
+  object ComboBox3: TComboBox
+    Left = 88
+    Top = 135
+    Width = 68
+    Height = 21
+    Enabled = False
+    TabOrder = 16
+    Text = '1000'
+    OnChange = ComboBox3Change
+    Items.Strings = (
+      '300'
+      '500'
+      '1000'
+      '1500'
+      '2000')
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
@@ -923,7 +939,7 @@
   end
   object Timer3: TTimer
     Enabled = False
-    Interval = 1500
+    Interval = 1400
     OnTimer = Timer3Timer
     Left = 176
     Top = 65520

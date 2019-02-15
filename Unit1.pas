@@ -53,6 +53,7 @@ type
     Button5: TButton;
     Timer3: TTimer;
     CheckBox6: TCheckBox;
+    ComboBox3: TComboBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -118,6 +119,7 @@ type
     procedure Button5Click(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
     procedure CheckBox6Click(Sender: TObject);
+    procedure ComboBox3Change(Sender: TObject);
 
   private
     { Private declarations }
@@ -127,7 +129,7 @@ type
 
 var
   Form1: TForm1;
-  ver: string = '1.0';
+  ver: string = '1.1';
   exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
   rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
   lastver: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
@@ -273,7 +275,7 @@ var
 begin
   //Получение даты и времени по UTC = (true)
   Today:=CurrentDateTime(true);
-{
+
   //Дату в переменные
   DateTimeToString(Day,'dd',today);
   DateTimeToString(Mon,'mm',today);
@@ -281,7 +283,7 @@ begin
 
   //Время в переменные
   DateTimeToString(Hour,'hh',today);
-}  DateTimeToString(Min,'nn',today);
+  DateTimeToString(Min,'nn',today);
 
 //  showmessage('Изначальное: '+Day+'\'+Hour+':'+Min);
 
@@ -311,7 +313,8 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 var
   buf: TMemoryStream;
-  hima:string;
+//  Str1,Str2:string;
+//  i:integer;
 begin
   buf:=TMemoryStream.Create;
   Log('Источник: '+Combobox1.Text);
@@ -330,15 +333,16 @@ begin
   if (ComboBox1.Text='Himawari') or (ComboBox1.Text='Himawari HD') then
     begin
       try
-      Log('Обновление cнимка с Himawari: '+#13+Himawari);
+      Log('Обновление cнимка Himawari: '+#13+Himawari);
       Button1.Enabled:=false;
       Button1.Caption:='Загрузка снимка Himawari...';
       Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
-      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp'); //Сохранение
+//      Log(Copy(Himawari, 48, 12));
+      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
       buf.Clear;
-      Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp'));
-      SetWallpaper(GetWin('%AppData%')+'\himawari_'+FormatDateTime('hhmm',now)+'.bmp');
+      Log('Установка снимка Himawari: '+#13+GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
+      SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
 
@@ -364,13 +368,18 @@ begin
 }
   if pos('http://', Combobox1.Text) or pos('https://', Combobox1.Text)=0 then
     ComboBox1.Text:=('http://'+Combobox1.Text);
-
+  try
   Log('Обновление cнимка button1: '+#13+combobox1.Text);
   Button1.Enabled:=false;
   Button1.Caption:='Загрузка изображения...';
   //Загрузка и сохранение изображения
   idHTTP1.Get(Combobox1.Text, buf); //Загрузка в буфер
+  except
+    on E : Exception do Log('Ошибка загрузки изображения: '+e.Message);
+  end;
+
   buf.SaveToFile(GetWin('%AppData%')+'\img.bmp'); //Сохранение
+  buf.Clear;
 
   //Установка обоев
   SetWallpaper(GetWin('%AppData%')+'\img.bmp');
@@ -565,7 +574,7 @@ var
 begin
   try
   SL:=TStringList.Create;
-  if FindFirst( 'himawari*',faAnyFile,searchResult) = 0 then
+  if FindFirst(GetWin('%AppData%')+'\himawari*',faAnyFile,searchResult) = 0 then
     repeat
       SL.Add(searchResult.name);
 //      ListBox1.Items.Add(searchResult.name);
@@ -573,12 +582,15 @@ begin
   FindClose(searchResult);
 //  Listbox1.Items:=SL;
 //  Log(SL.Strings[0]);
+//  Log(#13+SL.Text);
 //  Log('Установка снимка Himawari: '+#13+(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]));
 //  SetWallpaper(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]);
   SetWallpaper(GetWin('%AppData%')+'\'+SL.Strings[animate]);
   animate:=animate+1;
-  if Sl.Count=animate then animate:=0
+  if Sl.Count=animate then animate:=0;
+  SL.Clear;
   except
+    on e:exception do log(e.message);
   end;
 end;
 
@@ -591,25 +603,20 @@ var
   
   I: Integer;
 begin
-  Today:=CurrentDateTime(true);
-  //Дату в переменные
-  DateTimeToString(Day,'dd',today);
-  DateTimeToString(Mon,'mm',today);
-  DateTimeToString(Year,'yyyy',today);
 
-  //Время в переменные
-//  DateTimeToString(Hour,'hh',today);
-//  DateTimeToString(Min,'nn',today);
-    Hour:='00';
+//    Hour:='00';
     Min:='00';
+
+  Hour:=FormatDateTime('hh',now);
+  Min:=FormatDateTime('n',now);
+
     Log(Hour+Min);
-//  FormatDateTime('yymmdd',now);
-  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+//  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
 //  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
-  for I := 1 to 114 do
+
+  for I := 1 to 5 do
     begin
-//      idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
-      Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png');
+      Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
       MinInt:=MinInt+10;
       if MinInt>60 then
         begin 
@@ -622,7 +629,7 @@ begin
         else Hour:=IntToStr(hourInt);
       Log(Hour+' : '+Min);
     end;
-
+//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
 //  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
 //  buf.Clear;
 //  Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_.bmp'));
@@ -715,9 +722,26 @@ begin
 end;
 
 procedure TForm1.CheckBox6Click(Sender: TObject);
+var
+  reg: TRegistry;
 begin
-if checkbox6.Checked then timer3.Enabled:=true
-  else timer3.Enabled:=false;
+  reg:=TRegistry.Create;
+  reg.RootKey:=HKEY_CURRENT_USER;
+  reg.CreateKey('DeskChanger');
+  reg.OpenKey('DeskChanger', True);
+
+if checkbox6.Checked then
+  begin
+    timer3.Enabled:=true;
+    Combobox3.Enabled:=true;
+    reg.WriteString('Animate', '1');
+  end
+  else
+    begin
+      timer3.Enabled:=false;
+      Combobox3.Enabled:=false;
+      reg.WriteString('Animate', '0');
+    end;
 end;
 
 procedure TForm1.ComboBox1Change(Sender: TObject);
@@ -768,16 +792,28 @@ begin
   //Установка таймера частоты обновления
   if Combobox2.ItemIndex=0 then Timer1.Enabled:=false
     else Timer1.Enabled:=true;
-  if Combobox2.ItemIndex=1 then Timer1.Interval:=600000;
-  if Combobox2.ItemIndex=2 then Timer1.Interval:=1800000;
-  if Combobox2.ItemIndex=3 then Timer1.Interval:=3600000;
-  if Combobox2.ItemIndex=4 then Timer1.Interval:=7200000;
+
+  Timer1.Interval:=StrToInt(Combobox2.Text)*60000;
+  Log('Интервал обновления: '+IntToStr(StrToInt(Combobox2.Text)*60000)+' мс. ('+Combobox2.Text+' минут)');
 
   //Запись в реестр
   reg:=TRegistry.Create;
   reg.RootKey:=HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', True);
-  reg.WriteString('UpdInterval', IntToStr(Timer1.interval));
+  reg.WriteString('UpdInterval', IntToStr(StrToInt(Combobox2.Text) mod 60000));
+end;
+
+procedure TForm1.ComboBox3Change(Sender: TObject);
+var
+  reg: TRegistry;
+begin
+  timer3.Interval:=StrToInt(combobox3.Text);
+
+  //Запись в реестр
+  reg:=TRegistry.Create;
+  reg.RootKey:=HKEY_CURRENT_USER;
+  reg.OpenKey('DeskChanger', True);
+  reg.WriteString('AnimanionUpdate', Combobox3.Text);
 end;
 
 procedure TForm1.Edit1ContextPopup(Sender: TObject; MousePos: TPoint;
@@ -988,17 +1024,27 @@ begin
   reg.RootKey := HKEY_CURRENT_USER;
   reg.OpenKey('DeskChanger', False);
 
-  //Подгрузка ссылки
+  //Подгрузка ссылки и чекбоксы
   if reg.ValueExists('Link') then ComboBox1.text:=(reg.ReadString('Link'));
   if reg.ReadString('Close')='1' then checkbox4.Checked:=false
     else checkbox4.Checked:=true;
+  if reg.ReadString('Animate')='1' then checkbox6.Checked:=true
+    else checkbox6.Checked:=false;
+
 
   //Подгрузка интервала обновления
-  if reg.ValueExists('UpdInterval') then Timer1.interval:=StrToInt(reg.ReadString('UpdInterval'));
-  if Timer1.Interval=600000 then Combobox2.ItemIndex:=1;
-  if Timer1.Interval=1800000 then  Combobox2.ItemIndex:=2;
-  if Timer1.Interval=3600000 then  Combobox2.ItemIndex:=3;
-  if Timer1.Interval=7200000 then  Combobox2.ItemIndex:=4;
+  if reg.ValueExists('UpdInterval') then
+    begin
+      Timer1.interval:=StrToInt(reg.ReadString('UpdInterval'))*60000;
+      Combobox2.Text:=reg.ReadString('UpdInterval');
+    end;
+
+  if reg.ValueExists('AnimanionUpdate') then
+    begin
+      Timer3.interval:=StrToInt(reg.ReadString('AnimanionUpdate'));
+      Combobox3.Text:=reg.ReadString('AnimanionUpdate');
+    end;
+
 
   //Подгрузка настроек прокси из реестра
   if reg.ReadString('AutoProxy')='1' then
@@ -1022,7 +1068,7 @@ begin
     end;
   reg.CloseKey;
 
-  //Подгрузка настройки "изображение по центру"
+  //Подгрузка настройки "Изображение по центру"
   reg.OpenKey('Control Panel\Desktop', False);
   if  reg.ReadString('WallpaperStyle')='6' then
     begin
@@ -1043,35 +1089,28 @@ Listbox1.Height:=Form1.Height-357;
 end;
 
 procedure TForm1.Label2Click(Sender: TObject);
-  var i :integer;
+  var
+    i :integer;
 begin
 //Сворачивание и разворачивание настроек
 If Form1.BorderStyle=TFormBorderStyle(2) then Form1.BorderStyle:=TFormBorderStyle(1);
-if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+120
+if form1.ClientHeight<200 then Form1.ClientHeight:=form1.ClientHeight+137
   else
     begin
       i:=0;
       if form1.Height > 150 then
         begin
+          Button4.Visible:=false;
+          Button5.Visible:=false;
           while form1.Height > 150 do
             begin
               i:=i+1;
 //              Form1.Caption:=inttostr(vers);
 //              Form1.Caption:=Form1.Caption+'.';
-              Button4.Visible:=false;
               form1.Height:=form1.Height-4;
               form1.Update;
               sleep(1);
             end;
-        end;
-      while form1.Height > Listbox1.Top+190 do
-        begin
-          i:=i+1;
-          Form1.Caption:=inttostr(i);
-          Form1.Caption:=Form1.Caption+'.';
-          form1.Height:=form1.Height+4;
-          form1.Update;
-          sleep(1);
         end;
     end;
 
@@ -1129,7 +1168,7 @@ begin
         begin
           Form1.BorderStyle:=TFormBorderStyle(1);
           Button4.Visible:=false;
-          button5.Visible:=true;
+          button5.Visible:=false;
           form1.Width:= 350;
           Label2.OnClick(self);
         end;
@@ -1397,6 +1436,7 @@ begin
   Log('Обработка Timer2');
 
   //Подгрузка списка ссылок на ресурсы
+  try
   If combobox1.Items.Count<5 then
     begin
       Log('Подгрузка списка ссылок на ресурсы'+#13+links);
@@ -1406,6 +1446,9 @@ begin
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
     end;
+  except
+    on E : Exception do Log('Ошибка подгрузки ссылок на ресурсы: '+e.Message);
+  end;
 
   //Проверка на активность
   if Application.MainForm.Visible=true then
@@ -1437,6 +1480,7 @@ begin
 //  if FileExists('ssleay32.dll') then Log('ssleay32.dll присутствует');
 //  if FileExists('libeay32.dll') then Log('libeay32.dll присутствует')
   except
+    on E : Exception do Log('Ошибка загрузки SSL библиотек: '+e.Message);
   end;
 
   try
