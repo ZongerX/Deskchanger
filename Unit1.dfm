@@ -287,7 +287,6 @@
     Width = 326
     Height = 21
     TabOrder = 4
-    Text = '/ELECTRO_L_2'
     OnContextPopup = Edit1ContextPopup
     OnKeyPress = Edit1KeyPress
   end
@@ -351,6 +350,7 @@
     TabOrder = 11
     Visible = False
     OnClick = Button4Click
+    OnContextPopup = Button4ContextPopup
   end
   object CheckBox4: TCheckBox
     Left = 9
@@ -371,6 +371,7 @@
     Align = alClient
     ItemHeight = 13
     TabOrder = 13
+    OnContextPopup = ListBox2ContextPopup
   end
   object Button5: TButton
     Left = 193
@@ -381,6 +382,7 @@
     TabOrder = 14
     Visible = False
     OnClick = Button5Click
+    OnContextPopup = Button5ContextPopup
   end
   object CheckBox6: TCheckBox
     Left = 9
@@ -419,6 +421,7 @@
     NATKeepAlive.IntervalMS = 0
     ProxySettings.ProxyType = fpcmNone
     ProxySettings.Port = 0
+    ReadTimeout = 30000
     Left = 72
     Top = 65520
   end

@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
   IdBaseComponent, IdComponent, IdHTTP, System.Win.TaskbarCore, System.UITypes, Vcl.Taskbar,
-  IdIOHandler, IdIOHandlerSocket, ShellApi, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
+  IdIOHandler, IdIOHandlerSocket, ShellApi, JPEG, pngimage, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
   IdExplicitTLSClientServerBase, registry, IdFTP, IdTCPConnection, IdTCPClient,
   wininet, Vcl.ExtCtrls, Vcl.PlatformDefaultStyleActnCtrls, Vcl.Menus, DateUtils,
   Vcl.ActnPopup;
@@ -120,6 +120,12 @@ type
     procedure Timer3Timer(Sender: TObject);
     procedure CheckBox6Click(Sender: TObject);
     procedure ComboBox3Change(Sender: TObject);
+    procedure Button5ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    procedure ListBox2ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    procedure Button4ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
 
   private
     { Private declarations }
@@ -268,6 +274,28 @@ begin
   SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
 end;
 
+procedure PNGtoJPEG(const Source, Dest: String;  Quality: TJPEGQualityRange=100);
+var
+  Bitmap: TBitmap;
+  PNG: TPNGObject;
+  Jpg: TJpegImage;
+begin
+  PNG := TPNGObject.Create;
+  Bitmap := TBitmap.Create;
+  try
+    PNG.LoadFromFile(Source);
+    Bitmap.Assign(PNG);
+    Jpg := TJpegImage.Create;
+    Jpg.CompressionQuality:=Quality;
+    Jpg.Assign(Bitmap);
+    Jpg.SaveToFile(ChangeFileExt(Dest, '.jpg' ));
+  finally
+    jpg.free;
+    PNG.Free;
+    Bitmap.Free;
+  end
+end;
+
 Function Himawari : string;
 var
   today : TDateTime;
@@ -320,7 +348,8 @@ begin
   Log('Источник: '+Combobox1.Text);
   if pos('Выберите источник', Combobox1.Text)=1 then
     begin
-      showmessage('Нет ссылки');
+      Showmessage('Выберите источник');
+      Log('Нет ссылки');
       exit;
     end;
 
@@ -339,10 +368,12 @@ begin
       Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
 //      Log(Copy(Himawari, 48, 12));
-      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
+      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.png');
       buf.Clear;
-      Log('Установка снимка Himawari: '+#13+GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
-      SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.bmp');
+      Log('Конвертация снимка Himawari PNG to JPG...');
+      PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.png',GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
+      Log('Установка снимка Himawari: '+#13+GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
+      SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
 
@@ -437,14 +468,14 @@ begin
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Edit1.Text:=edit1.Text+(ListBox1.Items[ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
       Button1.Caption:='Смена директории... '+edit1.Text;
-      Log('Смена директории... '+edit1.Text);
+      Log('Смена директории... '+#13+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);     //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false);   //Вывод списка папок
 //      showmessage('год выбрали '+edit3.text);
 
       //Месяц
       Form1.idFTP1.List(ListBox1.Items,'',false);
-      Button1.Caption:='Смена директории... '+edit1.Text;
+      Button1.Caption:='Смена директории... '+#13+edit1.Text;
       Log('Смена директории... '+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
@@ -457,7 +488,7 @@ begin
       sort := TStringList.Create;
       if pos('January', Form1.Listbox1.Items.Text)>0 then sort.Add('01');
       if pos('February', Form1.Listbox1.Items.Text)>0 then sort.Add('02');
-      if pos('Mart', Form1.Listbox1.Items.Text)>0 then sort.Add('03');
+      if pos('March', Form1.Listbox1.Items.Text)>0 then sort.Add('03');
       if pos('April', Form1.Listbox1.Items.Text)>0 then sort.Add('04');
       if pos('May', Form1.Listbox1.Items.Text)>0 then sort.Add('05');
       if pos('June', Form1.Listbox1.Items.Text)>0 then sort.Add('06');
@@ -471,7 +502,7 @@ begin
       //Перевод числовых значений месяца в строковые
       if Mon='01' then MonStr:='January';
       if Mon='02' then MonStr:='February';
-      if Mon='03' then MonStr:='Mart';
+      if Mon='03' then MonStr:='March';
       if Mon='04' then MonStr:='April';
       if Mon='05' then MonStr:='May';
       if Mon='06' then MonStr:='June';
@@ -484,7 +515,7 @@ begin
 
       Edit1.Text:=(edit1.Text+MonStr+'/'); //Добавляем буквенный месяц из переменной
       Form1.Button1.Caption:='Смена директории... '+edit1.Text;
-      Log('Смена директории... '+edit1.Text);
+      Log('Смена директории... '+#13+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Месяц найден...';
@@ -494,7 +525,7 @@ begin
       Form1.edit1.Text:=Form1.edit1.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Смена директории... '+edit1.Text;
-      Log('Смена директории... '+edit1.Text);
+      Log('Смена директории... '+#13+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);      //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Число найдено...';
@@ -505,7 +536,7 @@ begin
       Form1.edit1.Text:=Form1.edit1.Text+(Form1.ListBox1.Items[Form1.ListBox1.Items.Count-1]+'/');//Перейти по последнему пункту из списка
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
       Form1.Button1.Caption:='Смена директории... '+edit1.Text;
-      Log('Смена директории... '+edit1.Text);
+      Log('Смена директории... '+#13+edit1.Text);
       Form1.idftp1.ChangeDir(Form1.edit1.text);   //Смена директории FTP
       Form1.idFTP1.List(ListBox1.Items,'',false); //Вывод списка папок
 
@@ -572,6 +603,7 @@ var
   searchResult : tsearchrec;
   SL: TStringList;
 begin
+
   try
   SL:=TStringList.Create;
   if FindFirst(GetWin('%AppData%')+'\himawari*',faAnyFile,searchResult) = 0 then
@@ -592,6 +624,21 @@ begin
   except
     on e:exception do log(e.message);
   end;
+
+
+//  PicPath := edit1.Text;
+//  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, Pointer(PicPath), SPIF_SENDWININICHANGE);
+//  if not SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, Pointer(PicPath), SPIF_SENDWININICHANGE) then
+//    RaiseLastOSError;
+end;
+
+procedure TForm1.Button4ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  PicPath : string;
+begin
+  PicPath := edit1.Text;
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, Pointer(PicPath), SPIF_SENDWININICHANGE);
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
@@ -636,6 +683,14 @@ begin
 //  SetWallpaper(GetWin('%AppData%')+'\himawari_.bmp');
 end;
 
+procedure TForm1.Button5ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+//ShellExecute(0, 'open', '%appdata%', nil, nil, SW_SHOW);
+WinExec('EXPLORER /e, ', SW_SHOW);
+beep;
+end;
+
 procedure TForm1.CheckBox1Click(Sender: TObject);
 var
   reg: TRegistry;
@@ -645,7 +700,7 @@ begin
   if checkbox1.Checked=true then
     begin
       reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True);
-      reg.WriteString('DeskChanger', Application.ExeName+' /s');
+      reg.WriteString('DeskChanger', Application.ExeName+' -s');
     end
   else
     begin
@@ -835,10 +890,11 @@ if key = #13 then
         idftp1.Password:='electro';
         idftp1.Connect;
       end;
-    if pos('.jpg',edit1.Text) or pos('.png',edit1.Text) <>0 then
+    if pos('.jpg',edit1.Text)<>0 then
       begin
         idftp1.Get(edit1.text, GetWin('%AppData%')+'\img.bmp', true);
         SetWallpaper((GetWin('%AppData%')+'\img.bmp'));
+        exit;
       end;
 
     Edit1.SelStart:=Length(Edit1.Text);
@@ -974,7 +1030,7 @@ begin
               form1.Visible:=false;
               Form1.BorderStyle:=TFormBorderStyle(1);
               Button4.Visible:=false;
-              button5.Visible:=true;
+              button5.Visible:=false;
               form1.Height:=150;
               form1.Width:= 350;
               abort;
@@ -998,8 +1054,8 @@ begin
 
   //Параметры запуска
   startparam := ParamStr(1);
-  if startparam = '/s' then Application.ShowMainForm:=false;
-  if startparam = '/upd' then
+  if startparam = '-s' then Application.ShowMainForm:=false;
+  if startparam = '-upd' then
     begin
       //Удаление файла старой версии
       DeleteFile(Pchar(Application.Title+'.old'));
@@ -1013,7 +1069,7 @@ begin
     end;
 
   //Удаление старых SSL библиотек
-  if startparam = '/SSL' then
+  if startparam = '-SSL' then
     begin
       DeleteFile(ExtractFilePath(Application.ExeName)+'libeay32.dll.old');
       DeleteFile(ExtractFilePath(Application.ExeName)+'ssleay32.dll.old');
@@ -1255,10 +1311,14 @@ begin
     buf.SaveToFile(Application.Title+'.exe');
     buf.Clear;
     Application.Terminate;
-    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/upd', nil, SW_SHOW);
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '-upd', nil, SW_SHOW);
     DeleteFile(Pchar(Application.Title+'.exe'));
   except
-    on E : Exception do Log('Не удалось обновить программу: '+#13+E.Message);
+    on E : Exception do
+      begin
+        Log('Не удалось обновить программу: '+#13+E.Message);
+        showmessage('Не удалось обновить программу: '+#13+E.Message);
+      end;
   end;
 
   Form1.Button1.Enabled:=true;
@@ -1314,7 +1374,7 @@ begin
     RenameFile(ExtractFilePath(Application.ExeName)+'ssleay32.dll', ExtractFilePath(Application.ExeName)+'ssleay32.dll.old');
     RenameFile(ExtractFilePath(Application.ExeName)+'libeay32.dll', ExtractFilePath(Application.ExeName)+'libeay32.dll.old');
     Application.Terminate;
-    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '/SSL', nil, SW_SHOW);
+    ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), '-SSL', nil, SW_SHOW);
   except
     on E : Exception do Showmessage(E.Message);
   end;
@@ -1341,7 +1401,7 @@ begin
   idftp1.Connect;
   idFTP1.ChangeDirUp();
   idftp1.List(ListBox1.Items,'',false); //Вывод списка папок
-  edit1.Text:='/';
+  edit1.Clear;
 end;
 
 procedure TForm1.ListBox1DblClick(Sender: TObject);
@@ -1355,6 +1415,12 @@ begin
         idftp1.ChangeDir(edit1.text);     //Смена директории FTP
         idftp1.List(ListBox1.Items,'',false);   //Вывод списка папок
       end;
+end;
+
+procedure TForm1.ListBox2ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+Edit1.Text:=(ListBox2.Items[ListBox2.ItemIndex]);
 end;
 
 procedure TForm1.N1Click(Sender: TObject);
@@ -1395,15 +1461,22 @@ begin
   Log('Обработка Timer1');
   //Подгрузка списка ссылок на ресурсы
   try
-    Log('Подгрузка списка ссылок на ресурсы');
-    combobox1.Items.Text:=(idhttp1.Get(links));
+    Log('Подгрузка списка ссылок на ресурсы'+#13+links);
+    Button1.Enabled:=false;
+    Button1.Caption:='Подгрузка списка ссылок на ресурсы';
+    Combobox1.Items.Text:=(idhttp1.Get(links));
+    Button1.Caption:='Обновить';
+    Button1.Enabled:=true;
   except
     Log('Ошибка подгрузки ссылок на ресурсы');
 //    резервный список ссылок
   end;
 
-  Log('Выполнение button1');
-  button1.Click;
+  if pos('Выберите источник', Combobox1.Text)=0 then
+  begin
+    Log('Выполнение button1');
+    button1.Click;
+  end;
 {  //Если оповещение об обновлении уже есть то обновить программу
   if label7.Visible = true then
     begin
@@ -1497,7 +1570,7 @@ begin
   except
   end;
 
-    button1.Click;
+  button1.Click;
 
   timer2.Destroy;
 end;
