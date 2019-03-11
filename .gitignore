@@ -11,3 +11,4 @@ deskchanger.stat
 Win32/Release/libeay32.dll
 Win32/Release/ssleay32.dll
 *.bmp
+Win32/Release/deskchanger.exe -s.lnk

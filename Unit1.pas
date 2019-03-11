@@ -116,7 +116,6 @@ type
     procedure CheckBox5Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
     procedure CheckBox6Click(Sender: TObject);
     procedure ComboBox3Change(Sender: TObject);
@@ -126,6 +125,7 @@ type
       var Handled: Boolean);
     procedure Button4ContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure Button5Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -143,6 +143,7 @@ var
   libeay32: String = 'http://games-wars.ucoz.ru/libeay32.dll';
   ssleay32: String = 'http://games-wars.ucoz.ru/ssleay32.dll';
   animate: integer;
+//  Links: TStringList;
 
 implementation
 
@@ -244,6 +245,94 @@ begin
     end
   end;
 end;
+
+function PictureOfDay: string;
+var
+  buf: TMemoryStream;
+  today : TDateTime;
+  Min,Hour,Day,Mon,Year:String;
+  MinInt,HourInt:integer;
+  I,Cycle,Calc,Down: Integer;
+  Links:TStringList;
+  Temp:Word;
+begin
+  Links:=TStringList.Create;
+  buf:=TMemoryStream.Create;
+
+  Hour:=Copy(Form1.Edit1.Text, 0, 2);
+  Min:=Copy(Form1.Edit1.Text, 3, 4);
+  Cycle:= StrToInt(InputBox('Колличество снимков','Введите:','24'));
+  Calc:=Cycle * 2;
+  Showmessage('Приблизительный размер снимков : '+IntToStr(Calc)+' МБ');
+
+  (*
+  temp:=MessageBox(Form1.handle, PChar('Загрузить снимки?'), PChar('Выберите настройку'), MB_YESNO+MB_ICONQUESTION);
+    case temp of
+      idYes:
+        begin
+          exit;
+        end;
+      idNo:
+        begin
+          Abort;
+        end;
+    end;
+*)
+
+    Log('Hour: '+Hour+' Min: '+Min+' Cycle: '+IntToStr(Cycle));
+//  Hour:='00';
+//  Min:='00'
+    MinInt:=StrToInt(Min);
+    HourInt:=StrToInt(Hour);
+
+    //Correction to UTC
+    HourInt:=HourInt-3;
+
+//  Hour:=FormatDateTime('hh',now);
+//  Min:=FormatDateTime('n',now);
+
+    Log('Begin: '+Hour+Min);
+//  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
+
+  for I := 1 to Cycle do
+    begin
+//      Log('Begin data: '+'http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+      MinInt:=MinInt+10;
+      if MinInt>50 then
+        begin
+          HourInt:=HourInt+1;
+          MinInt:=0;
+        end;
+      if minInt<10 then Min:='0'+IntToStr(MinInt)
+        else Min:=IntToStr(MinInt);
+      if HourInt<10 then Hour:='0'+IntToStr(hourInt)
+        else Hour:=IntToStr(hourInt);
+      Form1.ListBox1.Items.Add('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+      Links.Add('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
+//      Log(Hour+' : '+Min);
+    end;
+
+  Down:=0;
+  for I  := 1 to Cycle do
+    begin
+      Log('Загрузка снимка'+Links.strings[Down]);
+      Form1.idHTTP1.Get(Links.Strings[Down], buf); //Загрузка в буфер
+      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      buf.Clear;
+      Down:=Down+1;
+    end;
+
+//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
+//  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
+//  buf.Clear;
+//  Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_.bmp'));
+//  SetWallpaper(GetWin('%AppData%')+'\himawari_.bmp');
+
+//    Result:=;
+    buf.Free;
+end;
+
 
 procedure CheckUpdate;
 var
@@ -368,10 +457,10 @@ begin
       Log('Загрузка снимка Himawari...');
       idHTTP1.Get(Himawari, buf); //Загрузка в буфер
 //      Log(Copy(Himawari, 48, 12));
-      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.png');
+      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'');
       buf.Clear;
       Log('Конвертация снимка Himawari PNG to JPG...');
-      PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.png',GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
+      PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'',GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       Log('Установка снимка Himawari: '+#13+GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       label3.Visible:=true;
@@ -603,7 +692,6 @@ var
   searchResult : tsearchrec;
   SL: TStringList;
 begin
-
   try
   SL:=TStringList.Create;
   if FindFirst(GetWin('%AppData%')+'\himawari*',faAnyFile,searchResult) = 0 then
@@ -622,7 +710,11 @@ begin
   if Sl.Count=animate then animate:=0;
   SL.Clear;
   except
-    on e:exception do log(e.message);
+    on e:exception do
+      begin
+        log(e.message);
+        exit;
+      end;
   end;
 
 
@@ -642,53 +734,17 @@ begin
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
-var
-  buf: TMemoryStream;
-  today : TDateTime;
-  Min,Hour,Day,Mon,Year:String;
-  MinInt,HourInt:integer;
-  
-  I: Integer;
 begin
-
-//    Hour:='00';
-    Min:='00';
-
-  Hour:=FormatDateTime('hh',now);
-  Min:=FormatDateTime('n',now);
-
-    Log(Hour+Min);
-//  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
-//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
-
-  for I := 1 to 5 do
-    begin
-      Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
-      MinInt:=MinInt+10;
-      if MinInt>60 then
-        begin 
-          HourInt:=HourInt+1;
-          MinInt:=0;
-        end;
-      if minInt<10 then Min:='0'+IntToStr(MinInt)
-        else Min:=IntToStr(MinInt); 
-      if HourInt<10 then Hour:='0'+IntToStr(hourInt)
-        else Hour:=IntToStr(hourInt);
-      Log(Hour+' : '+Min);
-    end;
-//  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
-//  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
-//  buf.Clear;
-//  Log('Установка снимка Himawari: '+#13+(GetWin('%AppData%')+'\himawari_.bmp'));
-//  SetWallpaper(GetWin('%AppData%')+'\himawari_.bmp');
+PictureOfDay;
 end;
 
 procedure TForm1.Button5ContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 begin
 //ShellExecute(0, 'open', '%appdata%', nil, nil, SW_SHOW);
-WinExec('EXPLORER /e, ', SW_SHOW);
-beep;
+//WinExec('EXPLORER /e, ', SW_SHOW);
+//beep;
+
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
