@@ -54,6 +54,7 @@ type
     Timer3: TTimer;
     CheckBox6: TCheckBox;
     ComboBox3: TComboBox;
+    ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -133,9 +134,19 @@ type
     { Public declarations }
   end;
 
+  //Здесь необходимо описать класс TMyThread:
+  TMyThread = class(TThread)
+    private
+    { Private declarations }
+  protected
+    procedure Execute; override;
+  end;
+
 var
   Form1: TForm1;
-  ver: string = '1.1';
+  //Нужно ввести переменную класса TMyThread
+  MyThread: TMyThread;
+  ver: string = '1.2';
   exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
   rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
   lastver: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/lastver.txt';
@@ -246,13 +257,105 @@ begin
   end;
 end;
 
+procedure CheckUpdate;
+var
+  last:string;
+begin
+  //Проверка обновления
+  try
+    last:=Form1.idhttp1.Get(lastver);
+    if ver<>last then Form1.Label7.Visible:=true;
+  except
+  end;
+end;
+
+procedure SetWallpaper(sWallpaperBMPPath: string);
+var
+  reg: TRegIniFile;
+begin
+  //     Изменяем ключи реестра
+  //     HKEY_CURRENT_USER
+  //     Control Panel\Desktop
+  //     TileWallpaper (REG_SZ)
+  //     Wallpaper (REG_SZ)
+
+  reg := TRegIniFile.Create('Control Panel\Desktop');
+  reg.WriteString('', 'Wallpaper', sWallpaperBMPPath);
+  reg.Free;
+  //Установка обоев по данным в реестре
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
+end;
+
+procedure PNGtoJPEG(const Source, Dest: String;  Quality: TJPEGQualityRange=100);
+var
+  Bitmap: TBitmap;
+  PNG: TPNGObject;
+  Jpg: TJpegImage;
+begin
+  PNG := TPNGObject.Create;
+  Bitmap := TBitmap.Create;
+  Jpg := TJpegImage.Create;
+  try
+    PNG.LoadFromFile(Source);
+    Bitmap.Assign(PNG);
+    Jpg.CompressionQuality:=Quality;
+    Jpg.Assign(Bitmap);
+    Jpg.SaveToFile(ChangeFileExt(Dest, '.jpg' ));
+  finally
+    jpg.free;
+    PNG.Free;
+    Bitmap.Free;
+  end
+end;
+
+Function Himawari : string;
+var
+  today : TDateTime;
+  Min,Hour,Day,Mon,Year:String;
+begin
+  //Получение даты и времени по UTC = (true)
+  Today:=CurrentDateTime(true);
+
+  //Дату в переменные
+  DateTimeToString(Day,'dd',today);
+  DateTimeToString(Mon,'mm',today);
+  DateTimeToString(Year,'yyyy',today);
+
+  //Время в переменные
+  DateTimeToString(Hour,'hh',today);
+  DateTimeToString(Min,'nn',today);
+
+//  showmessage('Изначальное: '+Day+'\'+Hour+':'+Min);
+
+  //Снимок обрабатывается 5 минут каждую 10-ю минуту (10,20,30...60)
+  if StrToInt(Min[2])<6 then
+    begin
+      //Вычитаем 10 минут от времени
+      Today:=IncMinute(today, -10);
+      //Дату в переменные
+      DateTimeToString(Day,'dd',today);
+      DateTimeToString(Mon,'mm',today);
+      DateTimeToString(Year,'yyyy',today);
+
+      //Время в переменные
+      DateTimeToString(Hour,'hh',today);
+      DateTimeToString(Min,'nn',today);
+    end;
+
+  //Округление минут до десятков
+  Min:=IntToStr(StrToInt(Min) div 10)+'0';
+
+//  showmessage('Финальное: '+Day+'\'+Hour+':'+Min);
+  Result := 'http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png';
+end;
+
 function PictureOfDay: string;
 var
   buf: TMemoryStream;
   today : TDateTime;
   Min,Hour,Day,Mon,Year:String;
   MinInt,HourInt:integer;
-  I,Cycle,Calc,Down: Integer;
+  I,Cycle,Calc,Down,Proc: Integer;
   Links:TStringList;
   Temp:Word;
 begin
@@ -314,14 +417,29 @@ begin
     end;
 
   Down:=0;
+  try
   for I  := 1 to Cycle do
     begin
-      Log('Загрузка снимка'+Links.strings[Down]);
+      Log('Загрузка снимка: '+#13+Links.strings[Down]);
       Form1.idHTTP1.Get(Links.Strings[Down], buf); //Загрузка в буфер
       buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      Log('Конвертация снимка...');
+      PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'',GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'.jpg');
+      DeleteFile(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      Log('Снимок сохранён:'+#13+GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      proc := ((i * 100) div Cycle);
+      Form1.ProgressBar1.Position:=proc;
       buf.Clear;
       Down:=Down+1;
     end;
+    Form1.ProgressBar1.Position:=0;
+  except
+    on E: exception do
+      begin
+        Log('Ошибка скачивания снимка: '+e.Message+#13+' Снимков скачано: '+IntToStr(Cycle));
+      end;
+
+  end;
 
 //  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
 //  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
@@ -333,99 +451,14 @@ begin
     buf.Free;
 end;
 
-
-procedure CheckUpdate;
-var
-  last:string;
+//Нужно создать процедуру Execute, уже описанную в классе TMyThread
+procedure TMyThread.Execute;
 begin
-  //Проверка обновления
-  try
-    last:=Form1.idhttp1.Get(links);
-    if ver<>last then Form1.Label7.Visible:=true;
-  except
-  end;
+Log('Hello, it''s new tread!');
+PictureOfDay;
+MyThread.DoTerminate;
+//Здесь описывается код, который будет выполняться в потоке
 end;
-
-procedure SetWallpaper(sWallpaperBMPPath: string);
-var
-  reg: TRegIniFile;
-begin
-  //     Изменяем ключи реестра
-  //     HKEY_CURRENT_USER
-  //     Control Panel\Desktop
-  //     TileWallpaper (REG_SZ)
-  //     Wallpaper (REG_SZ)
-
-  reg := TRegIniFile.Create('Control Panel\Desktop');
-  reg.WriteString('', 'Wallpaper', sWallpaperBMPPath);
-  reg.Free;
-  //Установка обоев по данным в реестре
-  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, nil, SPIF_SENDWININICHANGE);
-end;
-
-procedure PNGtoJPEG(const Source, Dest: String;  Quality: TJPEGQualityRange=100);
-var
-  Bitmap: TBitmap;
-  PNG: TPNGObject;
-  Jpg: TJpegImage;
-begin
-  PNG := TPNGObject.Create;
-  Bitmap := TBitmap.Create;
-  try
-    PNG.LoadFromFile(Source);
-    Bitmap.Assign(PNG);
-    Jpg := TJpegImage.Create;
-    Jpg.CompressionQuality:=Quality;
-    Jpg.Assign(Bitmap);
-    Jpg.SaveToFile(ChangeFileExt(Dest, '.jpg' ));
-  finally
-    jpg.free;
-    PNG.Free;
-    Bitmap.Free;
-  end
-end;
-
-Function Himawari : string;
-var
-  today : TDateTime;
-  Min,Hour,Day,Mon,Year:String;
-begin
-  //Получение даты и времени по UTC = (true)
-  Today:=CurrentDateTime(true);
-
-  //Дату в переменные
-  DateTimeToString(Day,'dd',today);
-  DateTimeToString(Mon,'mm',today);
-  DateTimeToString(Year,'yyyy',today);
-
-  //Время в переменные
-  DateTimeToString(Hour,'hh',today);
-  DateTimeToString(Min,'nn',today);
-
-//  showmessage('Изначальное: '+Day+'\'+Hour+':'+Min);
-
-  //Снимок обрабатывается 5 минут каждую 10-ю минуту (10,20,30...60)
-  if StrToInt(Min[2])<6 then
-    begin
-      //Вычитаем 10 минут от времени
-      Today:=IncMinute(today, -10);
-      //Дату в переменные
-      DateTimeToString(Day,'dd',today);
-      DateTimeToString(Mon,'mm',today);
-      DateTimeToString(Year,'yyyy',today);
-
-      //Время в переменные
-      DateTimeToString(Hour,'hh',today);
-      DateTimeToString(Min,'nn',today);
-    end;
-
-  //Округление минут до десятков
-  Min:=IntToStr(StrToInt(Min) div 10)+'0';
-
-//  showmessage('Финальное: '+Day+'\'+Hour+':'+Min);
-  Result := 'http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png';
-end;
-
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
@@ -461,6 +494,7 @@ begin
       buf.Clear;
       Log('Конвертация снимка Himawari PNG to JPG...');
       PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'',GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
+      DeleteFile(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'');
       Log('Установка снимка Himawari: '+#13+GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       label3.Visible:=true;
@@ -735,7 +769,8 @@ end;
 
 procedure TForm1.Button5Click(Sender: TObject);
 begin
-PictureOfDay;
+//PictureOfDay;
+MyThread:=TMyThread.Create(False);
 end;
 
 procedure TForm1.Button5ContextPopup(Sender: TObject; MousePos: TPoint;
@@ -803,7 +838,7 @@ begin
 
   if checkbox4.Checked=true then
     begin
-      checkbox3.Checked:=true;
+      checkbox4.Checked:=true;
       reg.WriteString('Close', '0');
     end
   else

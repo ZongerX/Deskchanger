@@ -320,6 +320,8 @@
     Width = 97
     Height = 17
     Caption = #1040#1074#1090#1086#1079#1072#1087#1091#1089#1082
+    Checked = True
+    State = cbChecked
     TabOrder = 8
     OnClick = CheckBox1Click
   end
@@ -408,6 +410,13 @@
       '1000'
       '1500'
       '2000')
+  end
+  object ProgressBar1: TProgressBar
+    Left = 6
+    Top = 64
+    Width = 324
+    Height = 3
+    TabOrder = 17
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
