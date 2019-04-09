@@ -127,6 +127,18 @@ type
     procedure Button4ContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure Button5Click(Sender: TObject);
+    procedure IdHTTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCount: Int64);
+    procedure IdHTTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCountMax: Int64);
+    procedure IdHTTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+    procedure IdFTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCount: Int64);
+    procedure IdFTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCountMax: Int64);
+    procedure IdFTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+    procedure Button2ContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
 
   private
     { Private declarations }
@@ -135,17 +147,30 @@ type
   end;
 
   //Здесь необходимо описать класс TMyThread:
-  TMyThread = class(TThread)
+  T1 = class(TThread)
     private
     { Private declarations }
   protected
+    procedure SortPic;
     procedure Execute; override;
   end;
+
+    T2 = class(TThread)
+   private
+     { Private declarations }
+   protected
+//     procedure DoWork;
+     procedure ElectroL;
+     procedure Himawari;
+     procedure Execute; override;
+   end;
+
 
 var
   Form1: TForm1;
   //Нужно ввести переменную класса TMyThread
-  MyThread: TMyThread;
+  MyThread: T1;
+  MyThread2: T2;
   ver: string = '1.2';
   exe: String = 'http://github.com/ZongerX/Deskchanger/raw/master/Win32/Release/deskchanger.exe';
   rezexe: String = 'http://games-wars.ucoz.ru/deskchanger.upd';
@@ -153,7 +178,8 @@ var
   links: String = 'https://raw.githubusercontent.com/ZongerX/Deskchanger/master/servers.txt';
   libeay32: String = 'http://games-wars.ucoz.ru/libeay32.dll';
   ssleay32: String = 'http://games-wars.ucoz.ru/ssleay32.dll';
-  animate: integer;
+  animate: integer = 2;
+  Path:String;
 //  Links: TStringList;
 
 implementation
@@ -180,7 +206,13 @@ begin
   Result := buff;
 end;
 
-function DownSSL: string;
+procedure Log(Data: string);
+begin
+ Form1.Listbox2.Items.Text:=Form1.Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': '+Data+' ';
+ Form1.ListBox2.TopIndex:=Form1.ListBox2.Items.Count-1;
+end;
+
+procedure DownSSL;
 var
   http: Tidhttp;
   buf: TMemoryStream;
@@ -195,7 +227,7 @@ begin
       buf.SaveToFile('libeay32.dll');
       buf.Clear;
     except
-      on E : Exception do Error:=('Ошибка загрузки libeay32.dll: '+#13+E.Message);
+      on E : Exception do Log('Ошибка загрузки libeay32.dll: '+#13+E.Message);
     end;
     try
       //Скачивание библиотеки ssleay32.dll
@@ -203,19 +235,15 @@ begin
       buf.SaveToFile('ssleay32.dll');
       buf.Clear;
     except
-      on E : Exception do Error:=('Ошибка загрузки ssleay32.dll:'+#13+E.Message);
+      on E : Exception do Log('Ошибка загрузки ssleay32.dll:'+#13+E.Message);
     end;
   Finally
     Application.Terminate;
     ShellExecute(Form1.Handle,'Open', Pchar(Application.Title+'.exe'), nil, nil, SW_SHOW);
   end;
-  Result:=Error;
 end;
 
-function Log(Data: string):string;
-begin
- Form1.Listbox2.Items.Text:=Form1.Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': '+Data+' ';
-end;
+
 
 procedure GetProxyData(var ProxyEnabled: boolean; var ProxyServer: string; var ProxyPort: integer);
 var
@@ -264,8 +292,20 @@ begin
   //Проверка обновления
   try
     last:=Form1.idhttp1.Get(lastver);
-    if ver<>last then Form1.Label7.Visible:=true;
+    Log('Проверка обновления программы...');
+    Log('Последняя версия: '+last+' Ваша версия: '+ver);
+    if ver<>last then
+      begin
+        Form1.Label7.Visible:=true;
+        if Form1.checkbox2.Checked = true then
+          begin
+            Log('Доступно обновления программы '+last);
+            Form1.trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+last;
+            Form1.trayicon1.ShowBalloonHint;
+          end;
+      end;
   except
+    on E: exception do log('Ошибка проверки обновления:'+E.Message);
   end;
 end;
 
@@ -349,7 +389,65 @@ begin
   Result := 'http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png';
 end;
 
-function PictureOfDay: string;
+Procedure Animation;
+var
+  searchResult : tsearchrec;
+  Folder,Date: TStringList;
+  Search:String;
+  AnimFolder:integer;
+begin
+  try
+  Folder:=TStringList.Create;
+  if FindFirst(GetWin('%AppData%')+'\Himawari\*',faAnyFile,searchResult) = 0 then
+    repeat
+      Folder.Add(searchResult.name);
+      Form1.ListBox1.Items.Add(searchResult.name);
+    until FindNext(searchResult) <> 0;
+  AnimFolder:=2;
+  Search:=Folder.Strings[AnimFolder];
+  Log('111111 '+Folder.Strings[AnimFolder]);
+  Log(GetWin('%AppData%')+'\Himawari\'+Search);
+  SetCurrentDir(Search);
+  Folder.Clear;
+//  Log(GetWin('%AppData%')+'\Himawari\'+Search+'\*');
+  if FindFirst(GetWin('%AppData%')+'\Himawari\'+Search+'\*',faAnyFile,searchResult) = 0 then
+  repeat
+    Folder.Add(searchResult.name);
+  until FindNext(searchResult) <> 0;
+
+//  SetCurrentDir(SL.Strings[2]);
+//  if FindFirst(SL.Strings[0]+'*',faAnyFile,searchResult) = 0 then SetCurrentDir('..')
+//    else Log('Установка изображения'+SL.Strings[0]);
+
+//  SetCurrentDir(SL.Strings[0]);
+
+  FindClose(searchResult);
+  Form1.Listbox1.Items:=Folder;
+//  Log(SL.Strings[0]);
+//  Log(#13+SL.Text);
+//  Log('Установка снимка Himawari: '+#13+(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]));
+//  SetWallpaper(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]);
+  Log('Установка: '+#13+GetWin('%AppData%')+'\Himawari\'+Search+'\'+Folder.Strings[animate]);
+  SetWallpaper(GetWin('%AppData%')+'\Himawari\'+Search+'\'+Folder.Strings[animate]);
+  Log('folder '+IntToStr(AnimFolder)+' animate '+IntToStr(animate));
+  animate:=animate+1;
+  if Folder.Count=animate then
+  begin
+   animate:=0;
+   AnimFolder:=AnimFolder+1;
+  end;
+  Folder.Clear;
+  except
+    on e:exception do
+      begin
+        log('Animation error: '+e.message);
+        Form1.Checkbox6.Checked:=false;
+        exit;
+      end;
+  end;
+end;
+
+procedure PictureOfDay;
 var
   buf: TMemoryStream;
   today : TDateTime;
@@ -361,44 +459,74 @@ var
 begin
   Links:=TStringList.Create;
   buf:=TMemoryStream.Create;
+  Today:=CurrentDateTime(true);
+  If Form1.Edit1.Text<>'' then Today:= EncodeDateTime(StrToInt(Copy(Form1.Edit1.Text, 0, 4)), StrToInt(Copy(Form1.Edit1.Text, 4, 6)), StrToInt(Copy(Form1.Edit1.Text, 6, 8)), StrToInt(Copy(Form1.Edit1.Text, 8, 10)), StrToInt(Copy(Form1.Edit1.Text, 10, 12)), 0, 0);
+  Log('dd/mm/yy = '+FormatDateTime('dd/mm/yy', Today));
+  //  Today := EncodeDateTime(2019, 2, 9, 1, 2, 0, 0);
+  //Дату в переменные
+  DateTimeToString(Day,'dd',today);
+  DateTimeToString(Mon,'mm',today);
+  DateTimeToString(Year,'yyyy',today);
 
-  Hour:=Copy(Form1.Edit1.Text, 0, 2);
-  Min:=Copy(Form1.Edit1.Text, 3, 4);
+  //Время в переменные
+  DateTimeToString(Hour,'hh',today);
+  DateTimeToString(Min,'nn',today);
+  //Округление минут до десятков
+  Min:=IntToStr(StrToInt(Min) div 10)+'0';
+
+  //Снимок обрабатывается 5 минут каждую 10-ю минуту (10,20,30...60)
+  if StrToInt(Min[2])<6 then
+    begin
+      //Вычитаем 10 минут от времени
+      Today:=IncMinute(today, -10);
+      //Дату в переменные
+      DateTimeToString(Day,'dd',today);
+      DateTimeToString(Mon,'mm',today);
+      DateTimeToString(Year,'yyyy',today);
+
+      //Время в переменные
+      DateTimeToString(Hour,'hh',today);
+      DateTimeToString(Min,'nn',today);
+      //Округление минут до десятков
+      Min:=IntToStr(StrToInt(Min) div 10)+'0';
+    end;
+
+
+
+//  Hour:=Copy(Form1.Edit1.Text, 0, 2);
+//  Min:=Copy(Form1.Edit1.Text, 3, 4);
   Cycle:= StrToInt(InputBox('Колличество снимков','Введите:','24'));
   Calc:=Cycle * 2;
-  Showmessage('Приблизительный размер снимков : '+IntToStr(Calc)+' МБ');
+//  Showmessage('Приблизительный размер снимков : '+IntToStr(Calc)+' МБ');
 
-  (*
-  temp:=MessageBox(Form1.handle, PChar('Загрузить снимки?'), PChar('Выберите настройку'), MB_YESNO+MB_ICONQUESTION);
-    case temp of
-      idYes:
-        begin
-          exit;
-        end;
-      idNo:
-        begin
-          Abort;
-        end;
-    end;
-*)
-
-    Log('Hour: '+Hour+' Min: '+Min+' Cycle: '+IntToStr(Cycle));
-//  Hour:='00';
-//  Min:='00'
-    MinInt:=StrToInt(Min);
-    HourInt:=StrToInt(Hour);
-
-    //Correction to UTC
-    HourInt:=HourInt-3;
-
-//  Hour:=FormatDateTime('hh',now);
-//  Min:=FormatDateTime('n',now);
+    Log('Hour:Min '+Hour+' : '+Min+' Cycle: '+IntToStr(Cycle));
 
     Log('Begin: '+Hour+Min);
 //  Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
 //  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('ymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
 
+  Form1.ListBox1.Clear;
+
   for I := 1 to Cycle do
+    begin
+      Today:=IncMinute(today, -10);
+      //Дату в переменные
+      DateTimeToString(Day,'dd',today);
+      DateTimeToString(Mon,'mm',today);
+      DateTimeToString(Year,'yyyy',today);
+      //Время в переменные
+      DateTimeToString(Hour,'hh',today);
+      DateTimeToString(Min,'n',today);
+      //Округление минут до десятков
+      Min:=IntToStr(StrToInt(Min) div 10)+'0';
+
+      Links.Add('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png');
+      Form1.ListBox1.Items.Add('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png');
+//      Log(Hour+' : '+Min);
+      Log('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+Year+Mon+Day+Hour+Min+'-00.png');
+    end;
+
+(*  for I := 1 to Cycle do
     begin
 //      Log('Begin data: '+'http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
       MinInt:=MinInt+10;
@@ -415,31 +543,49 @@ begin
       Links.Add('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png');
 //      Log(Hour+' : '+Min);
     end;
-
+*)
   Down:=0;
-  try
+
+  Form1.Button1.Enabled:=false;
+  Form1.Button1.Caption:='Загрузка снимков...';
+
+  //Создание папки Himawari
+    if CreateDir(GetWin('%AppData%')+'\Himawari') then  Log('Folder created '+GetWin('%AppData%')+'\Himawari');
+//    else Log('Folder already created '+getcurrentdir+'\Himawari');
+
+    if CreateDir(GetWin('%AppData%')+'\Himawari\'+Day+Mon+Year) then  Log('Folder created '+GetWin('%AppData%')+'\Himawari\'+Day+Mon+Year);
+    Path:=GetWin('%AppData%')+'\Himawari\'+Day+Mon+Year;
+
   for I  := 1 to Cycle do
     begin
+      try
+      Form1.Button1.Enabled:=false;
       Log('Загрузка снимка: '+#13+Links.strings[Down]);
       Form1.idHTTP1.Get(Links.Strings[Down], buf); //Загрузка в буфер
-      buf.SaveToFile(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      buf.SaveToFile(Path+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
       Log('Конвертация снимка...');
-      PngToJpeg(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'',GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'.jpg');
-      DeleteFile(GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
-      Log('Снимок сохранён:'+#13+GetWin('%AppData%')+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
-      proc := ((i * 100) div Cycle);
-      Form1.ProgressBar1.Position:=proc;
+      PngToJpeg(Path+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'',Path+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'.jpg');
+      DeleteFile(Path+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'');
+      Log('Снимок сохранён:'+#13+Path+'\himawari_'+Copy(Links.strings[Down], 48, 12)+'.jpg');
+//      proc := ((i * 100) div Cycle);
+      Form1.Button1.Caption:='Загружено '+IntToStr(Down)+' из '+IntToStr(Cycle)+'';
+//      Form1.ProgressBar1.Position:=proc;
       buf.Clear;
       Down:=Down+1;
-    end;
-    Form1.ProgressBar1.Position:=0;
-  except
-    on E: exception do
-      begin
-        Log('Ошибка скачивания снимка: '+e.Message+#13+' Снимков скачано: '+IntToStr(Cycle));
+      except
+        on E: exception do
+          begin
+            Down:=Down+1;
+            Log('Ошибка скачивания снимка: '+e.Message+#13+' Снимков скачано: '+IntToStr(Down));
+//            Form1.ProgressBar1.Position:=0;
+          end;
       end;
-
-  end;
+    end;
+    beep;
+    Log('Загружено '+IntToStr(Down)+'снимков');
+//    Form1.ProgressBar1.Position:=0;
+    Form1.Button1.Enabled;
+    Form1.Button1.Caption:='Обновить';
 
 //  idHTTP1.Get('http://www.jma.go.jp/en/gms/imgs_c/6/visible/1/'+FormatDateTime('yyyymmdd',now)+Hour+Min+'-00.png', buf); //Загрузка в буфер
 //  buf.SaveToFile(GetWin('%AppData%')+'\himawari_.bmp'); //Сохранение
@@ -451,18 +597,52 @@ begin
     buf.Free;
 end;
 
+
 //Нужно создать процедуру Execute, уже описанную в классе TMyThread
-procedure TMyThread.Execute;
+procedure T1.SortPic;
 begin
-Log('Hello, it''s new tread!');
-PictureOfDay;
-MyThread.DoTerminate;
-//Здесь описывается код, который будет выполняться в потоке
+//  showmessage('Himawari started');
+  PictureOfDay;
 end;
+
+procedure T2.ElectroL;
+begin
+  Log('FTP started');
+  Form1.Button2.OnClick(self);
+end;
+
+procedure T2.Himawari;
+begin
+  Log('Himawari started');
+  Himawari;
+  Mythread.Terminate;
+end;
+
+//Нужно создать процедуру Execute, уже описанную в классе TMyThread
+procedure T2.Execute;
+begin
+//Здесь описывается код, который будет выполняться в потоке
+Log('Thread 2 started');
+ if (Form1.ComboBox1.Text='Himawari') or (Form1.ComboBox1.Text='Himawari HD') then Himawari;
+ if (Form1.ComboBox1.Text='Electro-L') or (Form1.ComboBox1.Text='Electro-L HD') then Log('ElectroL');
+ Mythread.Terminate;
+if Mythread.Terminated then Log('Thread 2 terminated');
+end;
+
+//Нужно создать процедуру Execute, уже описанную в классе TMyThread
+procedure T1.Execute;
+begin
+//Здесь описывается код, который будет выполняться в потоке
+Log('Thread 1 started');
+SortPic;
+if Mythread.Terminated then Log('Thread 1 terminated');
+end;
+
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
   buf: TMemoryStream;
+  proc: integer;
 //  Str1,Str2:string;
 //  i:integer;
 begin
@@ -471,7 +651,7 @@ begin
   if pos('Выберите источник', Combobox1.Text)=1 then
     begin
       Showmessage('Выберите источник');
-      Log('Нет ссылки');
+      Log('Нет ссылки на источник:'+#13+Combobox1.Text);
       exit;
     end;
 
@@ -499,7 +679,6 @@ begin
       SetWallpaper(GetWin('%AppData%')+'\himawari_'+Copy(Himawari, 48, 12)+'.jpg');
       label3.Visible:=true;
       label3.Caption:=('Последнее обновление: ')+FormatDateTime('hh:mm',now);
-
       Button1.Caption:='Обновить';
       Button1.Enabled:=true;
       except
@@ -551,7 +730,7 @@ var
   Mon,MonStr,Year,Date:String;
   sort:TStringList;
 begin
-  Listbox2.Items.Text:=Listbox2.Items.Text+FormatDateTime('hh:mm:ss',now)+': Обновление cнимка с FTP: '+combobox1.Text;
+  Log('Обновление cнимка с FTP: '+combobox1.Text);
   Date:=(DateToStr(CurrentDateTime(false))); //Сегодняшнюю дату в string и в переменную
   Mon:=Date[4]+Date[5];//Месяц 4 и 5 цифры
   Year:=Date[7]+Date[8]+Date[9]+Date[10]; //Год 7,8,9,10 цифры
@@ -713,7 +892,12 @@ begin
   Form1.idftp1.Disconnect;
   Form1.Button1.Caption:='Обновить';
   Form1.Button1.Enabled:=true;
+end;
 
+procedure TForm1.Button2ContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+MyThread2:=T2.Create(False);
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -722,40 +906,8 @@ Label7.Visible:=true;
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
-var
-  searchResult : tsearchrec;
-  SL: TStringList;
 begin
-  try
-  SL:=TStringList.Create;
-  if FindFirst(GetWin('%AppData%')+'\himawari*',faAnyFile,searchResult) = 0 then
-    repeat
-      SL.Add(searchResult.name);
-//      ListBox1.Items.Add(searchResult.name);
-    until FindNext(searchResult) <> 0;
-  FindClose(searchResult);
-//  Listbox1.Items:=SL;
-//  Log(SL.Strings[0]);
-//  Log(#13+SL.Text);
-//  Log('Установка снимка Himawari: '+#13+(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]));
-//  SetWallpaper(ExtractFilePath(Application.ExeName)+'\'+SL.Strings[animate]);
-  SetWallpaper(GetWin('%AppData%')+'\'+SL.Strings[animate]);
-  animate:=animate+1;
-  if Sl.Count=animate then animate:=0;
-  SL.Clear;
-  except
-    on e:exception do
-      begin
-        log(e.message);
-        exit;
-      end;
-  end;
-
-
-//  PicPath := edit1.Text;
-//  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, Pointer(PicPath), SPIF_SENDWININICHANGE);
-//  if not SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, Pointer(PicPath), SPIF_SENDWININICHANGE) then
-//    RaiseLastOSError;
+Animation;
 end;
 
 procedure TForm1.Button4ContextPopup(Sender: TObject; MousePos: TPoint;
@@ -769,8 +921,8 @@ end;
 
 procedure TForm1.Button5Click(Sender: TObject);
 begin
-//PictureOfDay;
-MyThread:=TMyThread.Create(False);
+//PictureOfDay;;
+MyThread:=T1.Create(False);
 end;
 
 procedure TForm1.Button5ContextPopup(Sender: TObject; MousePos: TPoint;
@@ -780,6 +932,7 @@ begin
 //WinExec('EXPLORER /e, ', SW_SHOW);
 //beep;
 
+Animation;
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);
@@ -920,7 +1073,7 @@ begin
 
   Button1.Caption:='Обновить';
   Button1.Enabled:=true;
-  abort
+  abort;
 end;
 
 procedure TForm1.ComboBox1Select(Sender: TObject);
@@ -1235,6 +1388,40 @@ begin
 Listbox1.Height:=Form1.Height-357;
 end;
 
+procedure TForm1.IdFTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCount: Int64);
+begin
+ ProgressBar1.Position:= AWorkCount; //Кол-во скаченых байтов
+end;
+
+procedure TForm1.IdFTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCountMax: Int64);
+begin
+ProgressBar1.Max:= AWorkCountMax; //Макс. кол-во байтов в файле
+end;
+
+procedure TForm1.IdFTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+begin
+ProgressBar1.Position:= 0; //Макс. кол-во байтов в файле
+end;
+
+procedure TForm1.IdHTTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCount: Int64);
+begin
+  ProgressBar1.Position:= AWorkCount; //Кол-во скаченых байтов
+end;
+
+procedure TForm1.IdHTTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCountMax: Int64);
+begin
+ProgressBar1.Max:= AWorkCountMax; //Макс. кол-во байтов в файле
+end;
+
+procedure TForm1.IdHTTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+begin
+ProgressBar1.Position:= 0; //Макс. кол-во байтов в файле
+end;
+
 procedure TForm1.Label2Click(Sender: TObject);
   var
     i :integer;
@@ -1380,13 +1567,14 @@ procedure TForm1.Label7Click(Sender: TObject);
 var
   buf: TMemoryStream;
 begin
-  Log('Начало обновления программы '+ver+' на '+lastver);
+  Log('Начало обновления программы '+ver+' на '+#13+lastver);
   //Обновление программы
   try
     buf:=TMemoryStream.Create;
     RenameFile(Application.ExeName, Application.Title+'.old');
     Form1.Button1.Enabled:=false;
 
+    CheckUpdate;
     //Попытка скачать с основного сервера, в ином случае с резерва
     try
       Log('Попытка обновления c '+exe);
@@ -1574,30 +1762,16 @@ begin
       label7.OnClick(self);
     end;
 }
-  try
-    Log('Проверка обновления программы');
-    //Проверка обновления программы
-    newver:=idhttp1.Get(lastver);
-    if newver <> ver then
-      begin
-        label7.Visible := true;
-        if checkbox2.Checked = true then
-          begin
-            Log('Доступно обновления программы '+newver);
-            trayicon1.BalloonHint := 'Доступно обновление программы: Deskchanger '+newver;
-            trayicon1.ShowBalloonHint;
-          end;
-      end;
-  except
-    Log('Ошибка проверки обновления программы. Проверьте интернет, либо SSL соединение');
-  end;
+  Log('Проверка обновления программы');
+  //Проверка обновления программы
+  CheckUpdate;
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 var
   newver: String;
 begin
-  Log('Обработка Timer2');
+  if timer2.Interval=5000 then Log('Обработка Timer2');
 
   //Подгрузка списка ссылок на ресурсы
   try
@@ -1614,12 +1788,14 @@ begin
     on E : Exception do Log('Ошибка подгрузки ссылок на ресурсы: '+e.Message);
   end;
 
+
+
   //Проверка на активность
   if Application.MainForm.Visible=true then
     begin
       //Если активна отложить обновление при запуске
-      Log('Форма активна, ожидание сворачивания в трей...');
-      timer2.Interval:=timer2.Interval+5000;
+      if timer2.Interval=5000 then Log('Форма активна, ожидание сворачивания в трей...');
+      timer2.Interval:=timer2.Interval+5500;
       exit;
     end
       else
@@ -1627,6 +1803,7 @@ begin
           //Иначе обновить снимок
 //          if checkbox1.Checked then button1.Click;
         end;
+
 
   try
   //Проверка наличия библиотек SSL: ssleay32 и libeay32
@@ -1668,12 +1845,12 @@ end;
 
 procedure TForm1.Timer3Timer(Sender: TObject);
 begin
-Button4.OnClick(self);
+Animation;
 end;
 
 procedure TForm1.TrayIcon1Click(Sender: TObject);
 begin
-  Form1.Show;
+  Application.MainForm.Show;
 end;
 
 procedure TForm1.TrayIcon1MouseDown(Sender: TObject; Button: TMouseButton;

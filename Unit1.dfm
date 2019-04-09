@@ -270,6 +270,7 @@
     Caption = 'FTP'
     TabOrder = 2
     OnClick = Button2Click
+    OnContextPopup = Button2ContextPopup
   end
   object ListBox1: TListBox
     Left = 8
@@ -304,11 +305,14 @@
     Top = 135
     Width = 73
     Height = 21
+    Hint = #1063#1072#1089#1090#1086#1090#1072' '#1086#1073#1085#1086#1074#1083#1077#1085#1080#1103' '#1089#1085#1080#1084#1082#1086#1074
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 6
     Text = '30'
     OnChange = ComboBox2Change
     Items.Strings = (
-      #1054#1090#1082#1083#1102#1095#1077#1085#1086
+      '0'
       '10'
       '30'
       '60'
@@ -400,11 +404,16 @@
     Top = 135
     Width = 68
     Height = 21
+    Hint = #1063#1072#1089#1090#1086#1090#1072' '#1072#1085#1080#1084#1072#1094#1080#1080
+    AutoComplete = False
     Enabled = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 16
     Text = '1000'
     OnChange = ComboBox3Change
     Items.Strings = (
+      '100'
       '300'
       '500'
       '1000'
@@ -412,13 +421,16 @@
       '2000')
   end
   object ProgressBar1: TProgressBar
-    Left = 6
-    Top = 64
-    Width = 324
-    Height = 3
+    Left = 10
+    Top = 26
+    Width = 326
+    Height = 2
     TabOrder = 17
   end
   object IdFTP1: TIdFTP
+    OnWork = IdFTP1Work
+    OnWorkBegin = IdFTP1WorkBegin
+    OnWorkEnd = IdFTP1WorkEnd
     IPVersion = Id_IPv4
     Passive = True
     ConnectTimeout = 0
@@ -498,6 +510,9 @@
   end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1
+    OnWork = IdHTTP1Work
+    OnWorkBegin = IdHTTP1WorkBegin
+    OnWorkEnd = IdHTTP1WorkEnd
     AllowCookies = True
     HandleRedirects = True
     ProxyParams.BasicAuthentication = False
